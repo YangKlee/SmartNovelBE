@@ -2,22 +2,27 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SmartNovelBE.Models;
+using SmartNovelBE.Services;
 
 namespace SmartNovelBE.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class UsersController : ControllerBase
     {
         private readonly SmartTruyenDbContext _context;
+        private readonly JwtServices _jwtServices;
 
         public UsersController(SmartTruyenDbContext context)
         {
             _context = context;
+
         }
 
         // GET: api/Users
@@ -27,6 +32,7 @@ namespace SmartNovelBE.Controllers
             return await _context.Users.ToListAsync();
         }
 
+        
         // GET: api/Users/5
         [HttpGet("{id}")]
         public async Task<ActionResult<User>> GetUser(string id)

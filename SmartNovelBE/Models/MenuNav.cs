@@ -17,6 +17,8 @@ public partial class MenuNav
 
     public string? UrlLink { get; set; }
 
+    public int? Slots { get; set; }
+
     public virtual ICollection<MenuNav> InverseParent { get; set; } = new List<MenuNav>();
 
     public virtual MenuNav? Parent { get; set; }

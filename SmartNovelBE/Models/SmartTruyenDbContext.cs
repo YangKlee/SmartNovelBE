@@ -37,10 +37,6 @@ public partial class SmartTruyenDbContext : DbContext
 
     public virtual DbSet<User> Users { get; set; }
 
-//    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-//#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
-//        => optionsBuilder.UseSqlServer("Data Source=YANGLAPTOP;Initial Catalog=SmartTruyenDB;Integrated Security=True;TrustServerCertificate=True");
-
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Category>(entity =>
@@ -214,6 +210,7 @@ public partial class SmartTruyenDbContext : DbContext
                 .HasMaxLength(36)
                 .IsUnicode(false)
                 .HasColumnName("RoleID");
+            entity.Property(e => e.Slots).HasDefaultValue(0);
             entity.Property(e => e.UrlLink)
                 .HasMaxLength(500)
                 .IsUnicode(false);
@@ -464,11 +461,11 @@ public partial class SmartTruyenDbContext : DbContext
 
             entity.ToTable("User");
 
-            entity.HasIndex(e => e.Username, "UQ__User__536C85E469FED561").IsUnique();
+            entity.HasIndex(e => e.Username, "UQ__User__536C85E4A687A77E").IsUnique();
 
-            entity.HasIndex(e => e.Phone, "UQ__User__5C7E359E73F148E0").IsUnique();
+            entity.HasIndex(e => e.Phone, "UQ__User__5C7E359EB4EF3AA8").IsUnique();
 
-            entity.HasIndex(e => e.Email, "UQ__User__A9D10534F0D1FD33").IsUnique();
+            entity.HasIndex(e => e.Email, "UQ__User__A9D10534D11FF680").IsUnique();
 
             entity.Property(e => e.Uid)
                 .HasMaxLength(36)

@@ -1,4 +1,4 @@
-﻿using Azure.Core;
+using Azure.Core;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -41,7 +41,7 @@ namespace SmartNovelBE.Services
             {
                 return null;
             }
-            var issuer = _config["JwtConfig: Issuer"];
+            var issuer = _config["JwtConfig:Issuer"];
             var audience = _config["JwtConfig:Audience"];
             var key = _config["JwtConfig:Key"];
             var tokenValidityMins = _config.GetValue<int>("JwtConfig:TokenValidityMins");
@@ -51,12 +51,16 @@ namespace SmartNovelBE.Services
             {
                 Subject = new ClaimsIdentity(new[]
                 {
-                    new Claim(JwtRegisteredClaimNames.Name, req.username)
+                        new Claim(JwtRegisteredClaimNames.Name, userTmp.Username),
+
+                        new Claim("uid", userTmp.Uid.ToString()),
+
+                        new Claim(ClaimTypes.Role, userTmp.RoleId.ToString())
                 }),
                 Expires = tokenExpiryTimeStamp,
                 Issuer = issuer,
                 Audience = audience,
-                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(Encoding.ASCII.GetBytes(key)),
+                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key)),
                 SecurityAlgorithms.HmacSha512Signature),
             };
             var tokenHandler = new JwtSecurityTokenHandler();
@@ -65,9 +69,10 @@ namespace SmartNovelBE.Services
 
             return new LoginRespone
             {
-
+                UID = userTmp.Uid,
                 token = accessToken,
                 username = req.username,
+                roleID = userTmp.RoleId,
                 expiresIn = (int)tokenExpiryTimeStamp.Subtract(DateTime.UtcNow).TotalSeconds
             };
         }

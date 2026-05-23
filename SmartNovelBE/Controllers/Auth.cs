@@ -29,6 +29,16 @@ namespace SmartNovelBE.Controllers
             }
             return result;
         }
+        [Authorize]
+        [HttpGet("profile")]
+        public async Task<ActionResult<User>> profile()
+        {
+            // lấy uid từ token
+            var uid = User.FindFirst("uid")?.Value;
+
+            var user = await _context.Users.FirstOrDefaultAsync(x => x.Uid == uid);
+            return user;
+        }
         [AllowAnonymous]
         [HttpPost("Regist")]
         public async Task<ActionResult<User>> Regist(RegistRequest req)

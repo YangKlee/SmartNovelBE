@@ -19,6 +19,7 @@ namespace SmartNovelBE.Controllers
             _context = context;
         }
         [AllowAnonymous]
+        // api/auth/Login
         [HttpPost("Login")]
         public async Task<ActionResult<LoginRespone>> Login(LoginRequest req)
         {

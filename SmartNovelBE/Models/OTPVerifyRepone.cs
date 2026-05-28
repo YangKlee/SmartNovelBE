@@ -5,5 +5,6 @@
         public int code { set; get; }
         public string content { set; get; }
         public string token { set; get; }
+        public string TokenRecovery { set; get; }
     }
 }

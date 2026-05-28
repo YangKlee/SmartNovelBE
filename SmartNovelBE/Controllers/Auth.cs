@@ -74,12 +74,21 @@ namespace SmartNovelBE.Controllers
                 var cacheOptions = new MemoryCacheEntryOptions().SetAbsoluteExpiration(TimeSpan.FromMinutes(5));
                 var cacheOptionsForSpamEmail = 
                     new MemoryCacheEntryOptions().SetAbsoluteExpiration(TimeSpan.FromMinutes(1));
+                var cacheOptionsTokenRecovery = new MemoryCacheEntryOptions().SetAbsoluteExpiration(TimeSpan.FromMinutes(10));
                 Guid token = Guid.NewGuid();
+                Guid tokenEmail = Guid.NewGuid();
                 var otpData = new OtpInfo
                 {
                     code = optCode.ToString(),
                     attemp = 5
                 };
+                var emailToken = new PasswordTokenRecovery
+                {
+                    Email = otpemail.Email,
+                    isActive = false
+                };
+                // SET CACHE  ĐỂ KHÔI PHỤC PASS
+                _cache.Set(tokenEmail.ToString(), emailToken, cacheOptionsTokenRecovery);
                 _cache.Set(otpemail.Email, 1 , cacheOptionsForSpamEmail);
                 _cache.Set(token.ToString(), otpData, cacheOptions);
 
@@ -87,7 +96,8 @@ namespace SmartNovelBE.Controllers
                 {
                     code = 200,
                     content = "Gửi otp thành công, mã có tác dụng trong 5 phút!",
-                    token = token.ToString()
+                    token = token.ToString(),
+                    TokenRecovery = tokenEmail.ToString()
                 });
 
             }
@@ -112,19 +122,70 @@ namespace SmartNovelBE.Controllers
                if(otpInfo.attemp <= 0)
                 {
                     _cache.Remove(otpreq.Token);
-                    return BadRequest(new OTPVerifyRepone { code=400, content="Nhập OTP sai quá nhiều lần"});
+                    return BadRequest(new OTPVerifyRepone { code=400, content="Nhập OTP sai quá nhiều lần", TokenRecovery = otpreq.TokenRecovery });
                 }
-               if(otpreq.OTP == otpInfo.code)
+                if (otpreq.OTP == otpInfo.code)
                 {
                     _cache.Remove(otpreq.Token);
-                    return Ok(new OTPVerifyRepone { code = 200, content = "Thành công" });
+                    Guid token = Guid.NewGuid();
+                    // set token cho recovery password
+                    //var cacheOptions = new MemoryCacheEntryOptions().SetAbsoluteExpiration(TimeSpan.FromMinutes(5));
+                    //_cache.Set(token.ToString(), otpreq.Email, cacheOptions);
+                    bool isExist1 = _cache.TryGetValue(otpreq.TokenRecovery, out PasswordTokenRecovery obj);
+                    if (isExist1)
+                    {
+                        obj.isActive = true;
+                    }
+
+                    return Ok(new OTPVerifyRepone { code = 200, content = "Thành công", token = token.ToString(), TokenRecovery = otpreq.TokenRecovery });
 
 
                 }
-                otpInfo.attemp -= 1;
+                else
+                {
+                    otpInfo.attemp -= 1;
+                    return BadRequest(new OTPVerifyRepone { code = 400, content = "OTP sai", TokenRecovery = otpreq.TokenRecovery });
+                }
+                
 
             }
-            return BadRequest(new OTPVerifyRepone { code = 400, content = "OTP hết hạn" });
+            return BadRequest(new OTPVerifyRepone { code = 400, content = "OTP hết hạn", TokenRecovery = otpreq.TokenRecovery });
+        }
+        [AllowAnonymous]
+        [HttpPost("recoveryPassword")]
+        public async Task<IActionResult> recoveryPassword([FromBody] UserRequests.RecoveryPassword req)
+        {
+            bool isExist = _cache.TryGetValue(req.token, out PasswordTokenRecovery obj);
+            var passwordHasher = new PasswordHasher<object>();
+            if (isExist && obj.isActive == true)
+            {
+
+                var user = await _context.Users.FirstOrDefaultAsync(x => x.Email == obj.Email);
+                if(user == null)
+                {
+                    return BadRequest(new
+                    {
+                        content = "Trạng thái người dùng không hợp lệ",
+                    });
+                }
+                else
+                {
+                    user.Password = passwordHasher.HashPassword(null, req.password);
+                    _context.SaveChangesAsync();
+                    return Ok(new
+                    {
+                        content = "Khôi phục mật khẩu thành công!",
+                    });
+                }
+            }
+            else
+            {
+                return BadRequest(new
+                {
+                    content = "Phiên không hợp lệ hoặc đã hết hạn",
+                });
+            }
+
         }
         [Authorize]
         [HttpGet("profile")]

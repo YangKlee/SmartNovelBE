@@ -138,7 +138,7 @@ namespace SmartNovelBE.Controllers
         }
         [AllowAnonymous]
         [HttpPost("Regist")]
-        public async Task<ActionResult<User>> Regist(RegistRequest req)
+        public async Task<ActionResult> Regist(RegistRequest req)
         {
             var passwordHasher = new PasswordHasher<object>();
             var user = new User();
@@ -151,27 +151,54 @@ namespace SmartNovelBE.Controllers
 
             user.Uid = Guid.NewGuid().ToString();
             user.Password = passwordHasher.HashPassword(user,req.Password);
-            user.RoleId = "4";
+            user.RoleId = "4"; // gán user ban đầu là độc giả
             user.Status = "Active";
             _context.Users.Add(user);
             try
             {
                 await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateException)
-            {
-                var checkUsername = _context.Users.Any(x => x.Username == user.Username);
-                if (checkUsername)
+                return Ok(new 
                 {
-                    return Conflict();
+                    content = "Đăng ký thành công rồi nè!",
+                });
+            }
+            catch 
+            {
+                var checkUsername = await _context.Users.FirstOrDefaultAsync(x => x.Username == user.Username);
+                var checkEmail = _context.Users.FirstOrDefaultAsync(x => x.Email == user.Email);
+                var checkPhone = _context.Users.FirstOrDefaultAsync(x => x.Phone == user.Phone);
+                if (checkUsername != null)
+                {
+                    return BadRequest(new
+                    {
+                        content = "Username đã tồn tại!",
+                    });
+                }
+                else if (checkEmail != null)
+                {
+                    return BadRequest(new
+                    {
+                        content = "Email đã tồn tại!",
+                    });
+                }
+                else if (checkPhone != null)
+                {
+                    return BadRequest(new
+                    {
+                        content = "Số điện thoại đã tồn tại!",
+                    });
                 }
                 else
                 {
-                    throw;
+                    return BadRequest(new
+                    {
+                        content = "Lỗi không xác định!",
+                    });
                 }
+                
             }
 
-            return Ok(user);
+
         }
     }
 }

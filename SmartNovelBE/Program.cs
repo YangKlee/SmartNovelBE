@@ -48,7 +48,8 @@ builder.Services.AddCors(options =>
                   .AllowAnyMethod();
         });
 });
-
+builder.Services.AddTransient<MailServices>();
+builder.Services.AddMemoryCache();
 var app = builder.Build();
 app.UseCors("AllowAngular");
 // Configure the HTTP request pipeline.

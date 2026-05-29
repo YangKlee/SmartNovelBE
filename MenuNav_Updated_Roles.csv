@@ -1,0 +1,37 @@
+﻿ID,RoleID,IconBootstrap,Content,ParentID,UrlLink
+1,4,bi bi-house,Trang chủ,,/
+2,4,bi bi-list-ul,Thể loại,,#
+3,4,bi bi-bar-chart,Bảng xếp hạng,,#
+4,4,bi bi-search,Tìm truyện,,/tim-truyen
+5,4,bi bi-people,Tác giả,,/tac-gia
+6,4,,Hành động,2,/the-loai/hanh-dong
+7,4,,Phiêu lưu,2,/the-loai/phieu-luu
+8,4,,Hài hước,2,/the-loai/hai-huoc
+9,4,,Tình cảm / Ngôn tình,2,/the-loai/tinh-cam-ngon-tinh
+10,4,,Đam mỹ (BL),2,/the-loai/dam-my-bl
+11,4,,Bách hợp (GL),2,/the-loai/bach-hop-gl
+12,4,,Fantasy / Giả tưởng,2,/the-loai/fantasy-gia-tuong
+13,4,,Khoa học viễn tưởng,2,/the-loai/khoa-hoc-vien-tuong
+14,4,,Kinh dị,2,/the-loai/kinh-di
+15,4,,Trinh thám,2,/the-loai/trinh-tham
+16,4,,Học đường,2,/the-loai/hoc-duong
+17,4,,Đời thường,2,/the-loai/doi-thuong
+18,4,,Xuyên không / Isekai,2,/the-loai/xuyen-khong-isekai
+19,4,,Tu tiên / Huyền huyễn,2,/the-loai/tu-tien-huyen-huyen
+20,4,,Kiếm hiệp,2,/the-loai/kiem-hiep
+21,4,,Siêu nhiên,2,/the-loai/sieu-nhien
+22,4,,Drama / Tâm lý,2,/the-loai/drama-tam-ly
+23,4,,Sinh tồn,2,/the-loai/sinh-ton
+24,4,,Game / VRMMO,2,/the-loai/game-vrmmo
+25,4,,Thể thao,2,/the-loai/the-thao
+26,4,,Bảng xếp hạng tác giả,3,/bang-xep-hang/tac-gia
+27,4,,Bảng xếp hạng lượt xem,3,/bang-xep-hang/luot-xem
+28,3,bi bi-journal-plus,Quản lý truyện đăng,,/author/dashboard
+29,3,bi bi-plus-circle,Thêm truyện mới,28,/author/create-story
+30,3,bi bi-graph-up,Thống kê thu nhập,28,/author/analytics
+31,2,bi bi-shield-check,Kênh kiểm duyệt,,/moderator/dashboard
+32,2,bi bi-hourglass-split,Duyệt truyện mới,31,/moderator/pending-stories
+33,2,bi bi-exclamation-triangle,Xử lý báo cáo,31,/moderator/reports
+34,1,bi bi-speedometer2,Quản trị hệ thống,,/admin/dashboard
+35,1,bi bi-people-fill,Quản lý người dùng,34,/admin/users
+36,1,bi bi-gear-fill,Cấu hình chung,34,/admin/settings

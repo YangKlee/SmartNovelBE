@@ -7,5 +7,6 @@ namespace SmartNovelBE.Models
         public record RecoveryPassword(string password, string token);
         public record MailToken(string email, bool active);
         public record ChangeInfoUser(string displayName,  string phone, string? birthday);
+        public record changePassword(string oldPassword, string newPassword);
     }
 }

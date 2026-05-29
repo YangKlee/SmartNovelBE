@@ -1,9 +1,11 @@
 ﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
+using Org.BouncyCastle.Ocsp;
 using SmartNovelBE.Models;
 using SmartNovelBE.Services;
-using Microsoft.EntityFrameworkCore;
 namespace SmartNovelBE.Controllers
 {
     [Route("api/[controller]")]
@@ -74,6 +76,33 @@ namespace SmartNovelBE.Controllers
                
             }
             return BadRequest(new { Msg = "Lỗi không xác định" });
+        }
+        [HttpPost("changePassword")]
+        public async Task<IActionResult> changePassword(UserRequests.changePassword req)
+        {
+            var passhass = new PasswordHasher<object>();
+            var uid = User.FindFirst("uid")?.Value;
+            if (uid == null)
+                return Unauthorized();
+            var user = await _context.Users.FirstOrDefaultAsync(x => x.Uid == uid);
+            if (user == null)
+                return Unauthorized();
+            var resultHashPassword = passhass.VerifyHashedPassword(
+                null,
+                user.Password,
+                req.oldPassword
+            );
+
+            if (resultHashPassword == PasswordVerificationResult.Failed)
+            {
+                return BadRequest(new { Msg = "Mật khẩu cũ sai" });
+            }
+            else
+            {
+                user.Password = passhass.HashPassword(null, req.newPassword);
+                await _context.SaveChangesAsync();
+                return Ok();
+            }
         }
     }
 }

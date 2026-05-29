@@ -38,5 +38,42 @@ namespace SmartNovelBE.Controllers
             }
             return user;
         }
+        [HttpPost("updateInfoAccount")]
+        public async Task<IActionResult> updateInfoAccount(UserRequests.ChangeInfoUser req)
+        {
+            var uid = User.FindFirst("uid")?.Value;
+            if (uid == null)
+                return Unauthorized();
+            var user = await _context.Users.FirstOrDefaultAsync(x => x.Uid == uid);
+            if (user == null)
+                return Unauthorized();
+            user.DisplayName = req.displayName;
+            if(req.birthday != null)
+            {
+                DateTime bthDate = DateTime.ParseExact(
+                    req.birthday,
+                    "yyyy-MM-dd",
+                    System.Globalization.CultureInfo.InvariantCulture
+                );
+                user.Birthday = DateOnly.FromDateTime(bthDate);
+            }
+            user.Phone = req.phone;
+            try
+            {
+                await _context.SaveChangesAsync();
+                return Ok();
+            }
+            catch
+            {
+                var checkPhone = await _context.Users.FirstOrDefaultAsync(x => x.Phone == req.phone);
+                if(checkPhone != null)
+                {
+                    return BadRequest(new { Msg = "Số điện thoại đã tồn tại" });
+
+                }
+               
+            }
+            return BadRequest(new { Msg = "Lỗi không xác định" });
+        }
     }
 }

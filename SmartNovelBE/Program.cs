@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using SmartNovelBE.Models;
 using SmartNovelBE.Services;
+using SSmartNovelBE.Services.Interfaces;
 using System.Text;
 var builder = WebApplication.CreateBuilder(args);
 
@@ -37,6 +38,7 @@ builder.Services.AddAuthentication(options =>
     };
 });
 builder.Services.AddScoped<JwtServices>();
+builder.Services.AddScoped<INovelService, NovelService>();
 builder.Services.AddAuthorization();
 builder.Services.AddCors(options =>
 {
@@ -50,7 +52,6 @@ builder.Services.AddCors(options =>
 });
 
 var app = builder.Build();
-app.UseCors("AllowAngular");
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
@@ -58,7 +59,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
+app.UseCors("AllowAngular");
 app.UseAuthentication();
 app.UseAuthorization();
 

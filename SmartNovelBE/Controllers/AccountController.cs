@@ -67,8 +67,11 @@ namespace SmartNovelBE.Controllers
             }
             catch
             {
-                var checkPhone = await _context.Users.FirstOrDefaultAsync(x => x.Phone == req.phone);
-                if(checkPhone != null)
+                var phoneExists = await _context.Users.AnyAsync(x =>
+                    x.Phone == req.phone &&
+                    x.Uid != uid
+                );
+                if (phoneExists)
                 {
                     return BadRequest(new { Msg = "Số điện thoại đã tồn tại" });
 

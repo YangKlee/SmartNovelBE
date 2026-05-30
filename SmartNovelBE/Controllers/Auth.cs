@@ -191,11 +191,29 @@ namespace SmartNovelBE.Controllers
         [HttpGet("profile")]
         public async Task<ActionResult<User>> profile()
         {
+            var uid = User.FindFirst("uid")?.Value;
+            if (uid == null)
+            {
+                return Unauthorized();
+            }
+            var user = await _context.Users.FirstOrDefaultAsync(x => x.Uid == uid);
+            return Ok(user);
+        }
+        [Authorize]
+        [HttpGet("checkLogin")]
+        public async Task<IActionResult> getLogin()
+        {
             // lấy uid từ token
             var uid = User.FindFirst("uid")?.Value;
-
-            var user = await _context.Users.FirstOrDefaultAsync(x => x.Uid == uid);
-            return user;
+            if(uid == null)
+            {
+                return Unauthorized();
+            }
+            var user = await _context.Users.Include(r => r.Role).FirstOrDefaultAsync(x => x.Uid == uid);
+            return Ok(new
+            {
+                Role = user.Role.RoleDisplayName.ToLower()
+            });
         }
         [AllowAnonymous]
         [HttpPost("Regist")]
@@ -226,8 +244,8 @@ namespace SmartNovelBE.Controllers
             catch 
             {
                 var checkUsername = await _context.Users.FirstOrDefaultAsync(x => x.Username == user.Username);
-                var checkEmail = _context.Users.FirstOrDefaultAsync(x => x.Email == user.Email);
-                var checkPhone = _context.Users.FirstOrDefaultAsync(x => x.Phone == user.Phone);
+                var checkEmail = await _context.Users.FirstOrDefaultAsync(x => x.Email == user.Email);
+                var checkPhone = await _context.Users.FirstOrDefaultAsync(x => x.Phone == user.Phone);
                 if (checkUsername != null)
                 {
                     return BadRequest(new

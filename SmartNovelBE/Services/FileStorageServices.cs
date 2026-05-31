@@ -28,7 +28,7 @@ namespace SmartNovelBE.Services
                 var putRequest = new PutObjectRequest
                 {
                     BucketName = bucketName,
-                    Key = path + "/"+fileName,
+                    Key = path +fileName,
                     InputStream = memoryStream,
                     ContentType = file.ContentType,
                     // R2 khuyến nghị tắt tính năng ký payload trong một số trường hợp để tối ưu

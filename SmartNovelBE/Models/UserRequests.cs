@@ -14,6 +14,8 @@ namespace SmartNovelBE.Models
             public string? Description { get; init; }
             public string AgeRating { get; init; }
             public string Status { get; init; } = string.Empty;
+            public List<string> Genres { get; set; }
+
             public IFormFile? CoverImage { get; init; }
             public IFormFile? BannerImage { get; init; }
         }

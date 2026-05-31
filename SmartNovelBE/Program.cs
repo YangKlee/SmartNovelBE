@@ -4,6 +4,8 @@ using Microsoft.IdentityModel.Tokens;
 using SmartNovelBE.Models;
 using SmartNovelBE.Services;
 using System.Text;
+using Amazon.S3;
+using Amazon.Runtime;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -14,6 +16,20 @@ builder.Services.AddOpenApi();
 var conString = builder.Configuration.GetConnectionString("SmartNovel");
 builder.Services.AddDbContext<SmartTruyenDbContext>(options =>
     options.UseSqlServer(conString));
+var r2Section = builder.Configuration.GetSection("CloudflareR2");
+var accountId = r2Section["AccountId"];
+var accessKey = r2Section["AccessKey"];
+var secretKey = r2Section["SecretKey"];
+var serviceUrl = $"https://{accountId}.r2.cloudflarestorage.com";
+var credentials = new BasicAWSCredentials(accessKey, secretKey);
+var config = new AmazonS3Config
+{
+    ServiceURL = serviceUrl,
+};  
+builder.Services.AddSingleton<IAmazonS3>(new AmazonS3Client(credentials, config));
+
+
+
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -49,6 +65,7 @@ builder.Services.AddCors(options =>
         });
 });
 builder.Services.AddTransient<MailServices>();
+builder.Services.AddSingleton<FileStorageServices>();
 builder.Services.AddMemoryCache();
 var app = builder.Build();
 app.UseCors("AllowAngular");

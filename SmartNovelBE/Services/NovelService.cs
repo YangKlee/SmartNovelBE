@@ -1,8 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using SmartNovelBE.DTOs.Chapter;
 using SmartNovelBE.DTOs.Novel;
 using SmartNovelBE.Models;
 using SSmartNovelBE.Services.Interfaces;
-using SmartNovelBE.DTOs.Chapter;
 
 namespace SmartNovelBE.Services
 {
@@ -24,6 +24,8 @@ namespace SmartNovelBE.Services
 
                 .Include(x => x.Categories)
 
+                .Include(x => x.Chapters)
+
                 .FirstOrDefaultAsync(x => x.Slug == slug);
 
             if (novel == null)
@@ -39,23 +41,31 @@ namespace SmartNovelBE.Services
 
                 Description = novel.Description,
 
+                AgeRating = novel.AgeRating,
+
                 ImageNovelUrl = novel.ImageNovelUrl,
 
                 ImageBanerNovelUrl = novel.ImageBanerNovelUrl,
 
-                AuthorName =
-                    novel.UidNavigation.DisplayName,
+                Status = novel.Status,
 
-                ViewCount =
-                    novel.ViewCount ?? 0,
+                AuthorId = novel.Uid,
 
-                LikeCount =
-                    novel.LikeCount ?? 0,
+                AuthorName = novel.UidNavigation.DisplayName,
 
-                Categories =
-                    novel.Categories
-                        .Select(x => x.Name)
-                        .ToList()
+                ViewCount = novel.ViewCount ?? 0,
+
+                LikeCount = novel.LikeCount ?? 0,
+
+                CreateTime = novel.CreateTime,
+
+                UpdateTime = novel.UpdateTime,
+
+                TotalChapters = novel.Chapters.Count,
+
+                Categories = novel.Categories
+                    .Select(x => x.Name)
+                    .ToList()
             };
         }
 

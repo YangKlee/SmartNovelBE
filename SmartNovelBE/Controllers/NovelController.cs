@@ -10,7 +10,28 @@ using Org.BouncyCastle.Ocsp;
 using SmartNovelBE.Models;
 using SmartNovelBE.Services;
 using static Org.BouncyCastle.Crypto.Engines.SM2Engine;
-
+//                       _oo0oo_
+//                      o8888888o
+//                      88" . "88
+//                      (| -_- |)
+//                      0\  =  /0
+//                    ___/`---'\___
+//                  .' \\|     |// '.
+//                 / \\|||  :  |||// \
+//                / _||||| -:- |||||- \
+//               |   | \\\  -  /// |   |
+//               | \_|  ''\---/''  |_/ |
+//               \  .-\__  '-'  ___/-. /
+//             ___'. .'  /--.--\  `. .'___
+//          ."" '<  `.___\_<|>_/___.' >' "".
+//         | | :  `- \`.;`\ _ /`;.`/ - ` : | |
+//         \  \ `_.   \_ __\ /__ _/   .-` /  /
+//     =====`-.____`.___ \_____/___.-`___.-'=====
+//                       `=---='
+//
+//     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+//            Phật phù hộ, không bao giờ BUG
+//     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 namespace SmartNovelBE.Controllers
 {
     [Route("api/[controller]")]
@@ -22,12 +43,15 @@ namespace SmartNovelBE.Controllers
         private readonly SmartTruyenDbContext _context;
         private readonly MailServices _mailServices;
         private readonly IMemoryCache _cache;
-        public NovelController(JwtServices jwtServices, SmartTruyenDbContext context, MailServices mailServices, IMemoryCache cache)
+        private readonly FileStorageServices _fileServicesUpload;
+        public NovelController(JwtServices jwtServices, SmartTruyenDbContext context, 
+            MailServices mailServices, IMemoryCache cache, FileStorageServices fileServicesUpload)
         {
             _jwtServices = jwtServices;
             _context = context;
             _mailServices = mailServices;
             _cache = cache;
+            _fileServicesUpload = fileServicesUpload;
         }
         [HttpGet("getUserNovel")]
         [Authorize]
@@ -90,6 +114,77 @@ namespace SmartNovelBE.Controllers
 
                 });
             }
+        }
+        [Authorize]
+        [HttpPost("createNovel")]
+        public async Task<IActionResult> createNovel(UserRequests.CreateNovelRequest req)
+        {
+            var uid = User.FindFirst("uid")?.Value;
+            if (uid == null)
+                return Unauthorized();
+            var newNovel = new Novel();
+            Guid idNovel = Guid.NewGuid();
+            newNovel.NovelId = newNovel.ToString();
+            newNovel.Status = req.Status;
+            string slug = req.Title.ToLowerInvariant();
+            // slug xử lý sau,dùng GUID mẹ đi, thuật toán nó đau đầu vcl
+            newNovel.Slug = idNovel.ToString();
+            newNovel.Description = req.Description;
+            newNovel.UpdateTime = new DateTime();
+            newNovel.CreateTime = new DateTime();
+            newNovel.AgeRating = req.AgeRating;
+            // từ từ up file
+            newNovel.ImageNovelUrl = "";
+            newNovel.ImageBanerNovelUrl = "";
+
+            try
+            {
+                _context.Novels.Add(newNovel);
+                await _context.SaveChangesAsync();
+                string publicLink = "https://pub-20056e4912f440f08b3d40eea545f95f.r2.dev";
+                Guid idFile = Guid.NewGuid();
+                Guid idFile1 = Guid.NewGuid();
+                var novel1 = await _context.Novels.FirstOrDefaultAsync(n => n.Uid == idNovel.ToString());
+                if (req.CoverImage != null)
+                {
+                    string fileCoverNameRaw = req.CoverImage.FileName;
+                    string fileCoverName = $"{idFile.ToString()}-{fileCoverNameRaw}";
+                    var resultUploadCover = await _fileServicesUpload.UploadFile("/smart-novel/novel-image",
+                        fileCoverName, req.CoverImage);
+                    if (resultUploadCover)
+                    {
+
+                        novel1.ImageNovelUrl = fileCoverName;
+
+                    }
+                }
+                if(req.BannerImage != null)
+                {
+                    string fileBannerNameRaw = req.BannerImage.FileName;
+
+                    string fileBannerName = $"{idFile1.ToString()}-{fileBannerNameRaw}";
+
+                    var resultUploadBanner = await _fileServicesUpload.UploadFile("/smart-novel/novel-image",
+                        fileBannerName, req.CoverImage);
+
+
+                    if (resultUploadBanner)
+                    {
+                        novel1.ImageBanerNovelUrl = fileBannerName;
+                    }
+                }
+
+                _context.SaveChangesAsync();
+                return Ok();
+            }
+            catch
+            {
+                return BadRequest(new
+                {
+                    Msg = "Something went wrong huhuhuuhhu"
+                });
+            }
+
         }
     }
 }

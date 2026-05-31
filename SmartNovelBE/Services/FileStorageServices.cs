@@ -14,7 +14,7 @@ namespace SmartNovelBE.Services
             _configuration = configuration;
         }
 
-        public async Task<bool> UploadFile(string path,IFormFile file)
+        public async Task<bool> UploadFile(string path, string fileName,IFormFile file)
         {
             if (file == null || file.Length == 0)
             {
@@ -28,7 +28,7 @@ namespace SmartNovelBE.Services
                 var putRequest = new PutObjectRequest
                 {
                     BucketName = bucketName,
-                    Key = path + "/"+file.Name,
+                    Key = path + "/"+fileName,
                     InputStream = memoryStream,
                     ContentType = file.ContentType,
                     // R2 khuyến nghị tắt tính năng ký payload trong một số trường hợp để tối ưu

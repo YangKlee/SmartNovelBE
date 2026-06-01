@@ -76,7 +76,7 @@ namespace SmartNovelBE.Services
                 .Where(x =>
                     x.NovelId == novelId
                     &&
-                    x.Status == "ACTIVE")
+                    x.Status == "Public")
 
                 .OrderBy(x => x.ChaperOrder)
 

@@ -9,6 +9,7 @@ using NuGet.Common;
 using Org.BouncyCastle.Ocsp;
 using SmartNovelBE.Models;
 using SmartNovelBE.Services;
+using System.Security.Cryptography;
 using static Org.BouncyCastle.Crypto.Engines.SM2Engine;
 //                       _oo0oo_
 //                      o8888888o
@@ -88,32 +89,45 @@ namespace SmartNovelBE.Controllers
                 .ToListAsync();
             return Ok(novels);
         }
-        [HttpGet("getInfoNovel/{id}")]
-        public async Task<IActionResult> getInfoNovel(string id)
+        [HttpGet("getInfoNovelForReader/{id}")]
+        public async Task<IActionResult> getInfoNovelForReader(string id)
         {
-            var novelBasicInfo = await _context.Novels.FirstOrDefaultAsync(x => x.NovelId == id);
-            var authorNovelInfo = await _context.Novels.Where(n => n.NovelId == id).Join(_context.Users, n => n.Uid, u => u.Uid,
-                (n, u) => new
-                {
-                    u.DisplayName,
-                    u.AvartarUrl,
-                }).ToListAsync();
-            {
+            var novels = await _context.Novels
+                            .Where(n => n.NovelId == id && n.Status == "Public")
+                            .Select(n => new
+                            {
+                                NovelId = n.NovelId,
+                                Title = n.Title,
+                                Slug = n.Slug,
+                                Description = n.Description,
+                                AgeRating = n.AgeRating,
+                                ImageNovelUrl = n.ImageNovelUrl,
+                                ImageBanerNovelUrl = n.ImageBanerNovelUrl,
+                                Status = n.Status,
+                                ViewCount = n.ViewCount,
+                                LikeCount = n.LikeCount,
+                                CreateTime = n.CreateTime,
+                                UpdateTime = n.UpdateTime,
+                                authorId = n.Uid,
+                                authorName = n.UidNavigation.DisplayName,
 
-                if (novelBasicInfo == null)
+
+                                novelRating = n.Ratings
+                                .Select(r => (double?)r.RatingPoint)
+                                .Average() ?? 0
+                            })
+                            .FirstOrDefaultAsync();
+
+
+            if (novels== null)
                 {
                     return BadRequest(new
                     {
                         msg = "Không tìm thấy truyện",
                     });
                 }
-                return Ok(new
-                {
-                    novelBasicInfo,
-                    authorNovelInfo
-
-                });
-            }
+                return Ok(novels);
+            
         }
         [Authorize]
         [HttpPost("createNovel")]

@@ -50,7 +50,20 @@ namespace SmartNovelBE.Controllers
 
             return chapter;
         }
+        [HttpGet("getChapterForReader")]
+        public async Task<ActionResult<Chapter>> GetChapterForReader([FromQuery] string novelID, [FromQuery] string chapterID)
+        {
+            var chapter = await _context.Chapters
+                .FirstOrDefaultAsync(c => c.ChapterId == chapterID &&
+                c.NovelId == novelID && c.Status=="Public");
 
+            if (chapter == null)
+            {
+                return NotFound();
+            }
+
+            return chapter;
+        }
         // PUT: api/Chapters/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
@@ -160,6 +173,7 @@ namespace SmartNovelBE.Controllers
             newChapter.UpdateTime = DateTime.Now;
             newChapter.CreateTime = DateTime.Now;
             newChapter.NovelId = novelID;
+            newChapter.ChaperOrder = req.oder;
             try
             {
                 // upload file
@@ -180,6 +194,18 @@ namespace SmartNovelBE.Controllers
                 return BadRequest();
             }
 
+        }
+        [HttpGet("GetChapterContent")]
+        public async Task<IActionResult> GetChapterContent([FromQuery] string url)
+        {
+
+            using var httpClient = new HttpClient();
+            if (url != null)
+            {
+                var content = await httpClient.GetStringAsync(url);
+                return Content(content, "text/html; charset=utf-8");
+            }
+            return BadRequest();
         }
 
 

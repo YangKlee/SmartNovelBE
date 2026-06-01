@@ -19,5 +19,8 @@ namespace SmartNovelBE.Models
             public IFormFile? CoverImage { get; init; }
             public IFormFile? BannerImage { get; init; }
         }
+
+        public record chapterCreate(string title, int oder, string decrip,
+            string status, bool allowComment, string content);
     }
 }

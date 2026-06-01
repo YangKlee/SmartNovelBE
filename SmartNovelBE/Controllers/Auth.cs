@@ -187,14 +187,14 @@ namespace SmartNovelBE.Controllers
             }
 
         }
-        [Authorize]
+
         [HttpGet("profile")]
         public async Task<ActionResult<User>> profile()
         {
             var uid = User.FindFirst("uid")?.Value;
             if (uid == null)
             {
-                return Unauthorized();
+                return BadRequest();
             }
             var user = await _context.Users.FirstOrDefaultAsync(x => x.Uid == uid);
             return Ok(user);

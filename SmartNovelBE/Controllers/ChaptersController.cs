@@ -8,6 +8,7 @@ using SmartNovelBE.Services;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 
 namespace SmartNovelBE.Controllers
@@ -53,9 +54,16 @@ namespace SmartNovelBE.Controllers
         [HttpGet("getChapterForReader")]
         public async Task<ActionResult<Chapter>> GetChapterForReader([FromQuery] string novelID, [FromQuery] string chapterID)
         {
+            var roleId = User.FindFirstValue(ClaimTypes.Role);
+            if (roleId == null && roleId == "4")
+            {
+                var checkStatusChapter = await _context.Chapters.AnyAsync(n => n.ChapterId == chapterID && n.Status != "Public");
+                if (checkStatusChapter)
+                    return Unauthorized();
+            }
             var chapter = await _context.Chapters
                 .FirstOrDefaultAsync(c => c.ChapterId == chapterID &&
-                c.NovelId == novelID && c.Status=="Public");
+                c.NovelId == novelID );
 
             if (chapter == null)
             {

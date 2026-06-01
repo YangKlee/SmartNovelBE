@@ -9,6 +9,7 @@ using NuGet.Common;
 using Org.BouncyCastle.Ocsp;
 using SmartNovelBE.Models;
 using SmartNovelBE.Services;
+using System.Security.Claims;
 using System.Security.Cryptography;
 using static Org.BouncyCastle.Crypto.Engines.SM2Engine;
 //                       _oo0oo_
@@ -92,8 +93,15 @@ namespace SmartNovelBE.Controllers
         [HttpGet("getInfoNovelForReader/{id}")]
         public async Task<IActionResult> getInfoNovelForReader(string id)
         {
+            var roleId = User.FindFirstValue(ClaimTypes.Role);
+            if(roleId == null && roleId == "4")
+            {
+                var checkStatusNovel = await _context.Novels.AnyAsync(n => n.NovelId == id && n.Status != "Public");
+                if (checkStatusNovel)
+                    return Unauthorized();
+            }
             var novels = await _context.Novels
-                            .Where(n => n.NovelId == id && n.Status == "Public")
+                            .Where(n => n.NovelId == id )
                             .Select(n => new
                             {
                                 NovelId = n.NovelId,

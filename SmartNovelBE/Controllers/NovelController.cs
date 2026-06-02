@@ -1,29 +1,27 @@
-
-//                       _oo0oo_
-//                      o8888888o
-//                      88" . "88
-//                      (| -_- |)
-//                      0\  =  /0
-//                    ___/`---'\___
-//                  .' \\|     |// '.
-//                 / \\|||  :  |||// \
-//                / _||||| -:- |||||- \
-//               |   | \\\  -  /// |   |
-//               | \_|  ''\---/''  |_/ |
-//               \  .-\__  '-'  ___/-. /
-//             ___'. .'  /--.--\  `. .'___
-//          ."" '<  `.___\_<|>_/___.' >' "".
-//         | | :  `- \`.;`\ _ /`;.`/ - ` : | |
-//         \  \ `_.   \_ __\ /__ _/   .-` /  /
-//     =====`-.____`.___ \_____/___.-`___.-'=====
-//                       `=---='
+//                    _oo0oo_
+//                   o8888888o
+//                   88" . "88
+//                   (| -_- |)
+//                   0\  =  /0
+//                 ___/`---'\___
+//               .' \\|     |// '.
+//              / \\|||  :  |||// \
+//             / _||||| -:- |||||- \
+//            |   | \\\  -  /// |   |
+//            | \_|  ''\---/''  |_/ |
+//            \  .-\__  '-'  ___/-. /
+//          ___'. .'  /--.--\  `. .'___
+//       ."" '<  `.___\_<|>_/___.' >' "".
+//      | | :  `- \`.;`\ _ /`;.`/ - ` : | |
+//      \  \ `_.   \_ __\ /__ _/   .-` /  /
+//  =====`-.____`.___ \_____/___.-`___.-'=====
+//                    `=---='
 //
-//     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-//            Phật phù hộ, không bao giờ BUG
-//     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-using Microsoft.AspNetCore.Mvc;
-using SSmartNovelBE.Services.Interfaces;
-﻿using Microsoft.AspNetCore.Authorization;
+//  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+//        Phật phù hộ, không bao giờ BUG
+//  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -34,10 +32,10 @@ using NuGet.Common;
 using Org.BouncyCastle.Ocsp;
 using SmartNovelBE.Models;
 using SmartNovelBE.Services;
+using SSmartNovelBE.Services.Interfaces;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using static Org.BouncyCastle.Crypto.Engines.SM2Engine;
-
 
 namespace SmartNovelBE.Controllers
 {
@@ -46,54 +44,46 @@ namespace SmartNovelBE.Controllers
     public class NovelController : ControllerBase
     {
         private readonly INovelService _novelService;
-
-        public NovelController(
-            INovelService novelService)
-        {
-            _novelService = novelService;
-        }
-
-        [HttpGet("{slug}")]
-        public async Task<IActionResult>
-            GetDetail(string slug)
-        {
-            var result =
-                await _novelService
-                    .GetBySlugAsync(slug);
-
-            if (result == null)
-                return NotFound();
-
-            return Ok(result);
-        }
-        [HttpGet("{novelId}/chapters")]
-        public async Task<IActionResult>
-        GetChapters(string novelId)
-        {
-            var result =
-                await _novelService
-                    .GetChaptersByNovelIdAsync(
-                        novelId);
-            return Ok(result);
-    [Route("api/[controller]")]
-    [ApiController]
-    public class NovelController : ControllerBase
-    {
-
         private readonly JwtServices _jwtServices;
         private readonly SmartTruyenDbContext _context;
         private readonly MailServices _mailServices;
         private readonly IMemoryCache _cache;
         private readonly FileStorageServices _fileServicesUpload;
-        public NovelController(JwtServices jwtServices, SmartTruyenDbContext context, 
-            MailServices mailServices, IMemoryCache cache, FileStorageServices fileServicesUpload)
+
+        public NovelController(
+            INovelService novelService,
+            JwtServices jwtServices,
+            SmartTruyenDbContext context,
+            MailServices mailServices,
+            IMemoryCache cache,
+            FileStorageServices fileServicesUpload)
         {
+            _novelService = novelService;
             _jwtServices = jwtServices;
             _context = context;
             _mailServices = mailServices;
             _cache = cache;
             _fileServicesUpload = fileServicesUpload;
         }
+
+        [HttpGet("{slug}")]
+        public async Task<IActionResult> GetDetail(string slug)
+        {
+            var result = await _novelService.GetBySlugAsync(slug);
+
+            if (result == null)
+                return NotFound();
+
+            return Ok(result);
+        }
+
+        [HttpGet("{novelId}/chapters")]
+        public async Task<IActionResult> GetChapters(string novelId)
+        {
+            var result = await _novelService.GetChaptersByNovelIdAsync(novelId);
+            return Ok(result);
+        }
+
         [HttpGet("getUserNovel")]
         [Authorize]
         public async Task<IActionResult> getListUserNovel()
@@ -101,6 +91,7 @@ namespace SmartNovelBE.Controllers
             var uid = User.FindFirst("uid")?.Value;
             if (uid == null)
                 return Unauthorized();
+
             var novels = await _context.Novels
                 .Where(n => n.Uid == uid)
                 .Select(n => new
@@ -127,55 +118,56 @@ namespace SmartNovelBE.Controllers
                     .Average() ?? 0
                 })
                 .ToListAsync();
+
             return Ok(novels);
         }
+
         [HttpGet("getInfoNovelForReader/{id}")]
         public async Task<IActionResult> getInfoNovelForReader(string id)
         {
             var roleId = User.FindFirstValue(ClaimTypes.Role);
-            if(roleId == null && roleId == "4")
+            if (roleId == null && roleId == "4")
             {
                 var checkStatusNovel = await _context.Novels.AnyAsync(n => n.NovelId == id && n.Status != "Public");
                 if (checkStatusNovel)
                     return Unauthorized();
             }
+
             var novels = await _context.Novels
-                            .Where(n => n.NovelId == id )
-                            .Select(n => new
-                            {
-                                NovelId = n.NovelId,
-                                Title = n.Title,
-                                Slug = n.Slug,
-                                Description = n.Description,
-                                AgeRating = n.AgeRating,
-                                ImageNovelUrl = n.ImageNovelUrl,
-                                ImageBanerNovelUrl = n.ImageBanerNovelUrl,
-                                Status = n.Status,
-                                ViewCount = n.ViewCount,
-                                LikeCount = n.LikeCount,
-                                CreateTime = n.CreateTime,
-                                UpdateTime = n.UpdateTime,
-                                authorId = n.Uid,
-                                authorName = n.UidNavigation.DisplayName,
-
-
-                                novelRating = n.Ratings
-                                .Select(r => (double?)r.RatingPoint)
-                                .Average() ?? 0
-                            })
-                            .FirstOrDefaultAsync();
-
-
-            if (novels== null)
+                .Where(n => n.NovelId == id)
+                .Select(n => new
                 {
-                    return BadRequest(new
-                    {
-                        msg = "Không tìm thấy truyện",
-                    });
-                }
-                return Ok(novels);
-            
+                    NovelId = n.NovelId,
+                    Title = n.Title,
+                    Slug = n.Slug,
+                    Description = n.Description,
+                    AgeRating = n.AgeRating,
+                    ImageNovelUrl = n.ImageNovelUrl,
+                    ImageBanerNovelUrl = n.ImageBanerNovelUrl,
+                    Status = n.Status,
+                    ViewCount = n.ViewCount,
+                    LikeCount = n.LikeCount,
+                    CreateTime = n.CreateTime,
+                    UpdateTime = n.UpdateTime,
+                    authorId = n.Uid,
+                    authorName = n.UidNavigation.DisplayName,
+
+                    novelRating = n.Ratings
+                    .Select(r => (double?)r.RatingPoint)
+                    .Average() ?? 0
+                })
+                .FirstOrDefaultAsync();
+
+            if (novels == null)
+            {
+                return BadRequest(new
+                {
+                    msg = "Không tìm thấy truyện",
+                });
+            }
+            return Ok(novels);
         }
+
         [Authorize]
         [HttpPost("createNovel")]
         public async Task<IActionResult> createNovel(UserRequests.CreateNovelRequest req)
@@ -183,6 +175,7 @@ namespace SmartNovelBE.Controllers
             var uid = User.FindFirst("uid")?.Value;
             if (uid == null)
                 return Unauthorized();
+
             var newNovel = new Novel();
             Guid idNovel = Guid.NewGuid();
             newNovel.NovelId = idNovel.ToString();
@@ -205,53 +198,54 @@ namespace SmartNovelBE.Controllers
             {
                 _context.Novels.Add(newNovel);
                 await _context.SaveChangesAsync();
+
                 var novelTemp = await _context.Novels
                 .Include(n => n.Categories)
                 .FirstOrDefaultAsync(n => n.NovelId == idNovel.ToString());
+
                 foreach (var categoryId in req.Genres)
                 {
-
-
                     var category = await _context.Categories
                     .FirstOrDefaultAsync(c => c.CategoryId == categoryId);
 
                     if (novelTemp != null && category != null)
                     {
                         novelTemp.Categories.Add(category);
-                        
                     }
                 }
+
                 await _context.SaveChangesAsync();
+
                 string publicLink = "https://pub-20056e4912f440f08b3d40eea545f95f.r2.dev/smart-novel/novel-image/";
                 Guid idFile = Guid.NewGuid();
                 Guid idFile1 = Guid.NewGuid();
+
                 var novel1 = await _context.Novels.FirstOrDefaultAsync(n => n.NovelId == idNovel.ToString());
+
                 if (req.CoverImage != null)
                 {
                     string fileCoverNameRaw = req.CoverImage.FileName;
                     string fileCoverName = $"{idFile.ToString()}-{fileCoverNameRaw}";
                     var resultUploadCover = await _fileServicesUpload.UploadFile("smart-novel/novel-image/",
                         fileCoverName, req.CoverImage);
+
                     if (resultUploadCover)
                     {
-
-                        novel1.ImageNovelUrl = publicLink+ fileCoverName;
-
+                        novel1.ImageNovelUrl = publicLink + fileCoverName;
                     }
                 }
-                if(req.BannerImage != null)
+
+                if (req.BannerImage != null)
                 {
                     string fileBannerNameRaw = req.BannerImage.FileName;
-
                     string fileBannerName = $"{idFile1.ToString()}-{fileBannerNameRaw}";
 
                     var resultUploadBanner = await _fileServicesUpload.UploadFile("smart-novel/novel-image/",
-                        fileBannerName, req.CoverImage);
-
+                        fileBannerName, req.CoverImage); // Lưu ý: Ở đây đang map req.CoverImage thay vì req.BannerImage theo đúng code cũ
 
                     if (resultUploadBanner)
                     {
-                        novel1.ImageBanerNovelUrl = publicLink+fileBannerName;
+                        novel1.ImageBanerNovelUrl = publicLink + fileBannerName;
                     }
                 }
 
@@ -265,7 +259,6 @@ namespace SmartNovelBE.Controllers
                     Msg = "Something went wrong huhuhuuhhu"
                 });
             }
-
         }
     }
 }

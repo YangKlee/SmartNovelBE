@@ -1,17 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Caching.Memory;
-using Microsoft.VisualBasic;
-using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.BlazorIdentity.Pages.Manage;
-using NuGet.Common;
-using Org.BouncyCastle.Ocsp;
-using SmartNovelBE.Models;
-using SmartNovelBE.Services;
-using System.Security.Claims;
-using System.Security.Cryptography;
-using static Org.BouncyCastle.Crypto.Engines.SM2Engine;
+
 //                       _oo0oo_
 //                      o8888888o
 //                      88" . "88
@@ -34,8 +21,60 @@ using static Org.BouncyCastle.Crypto.Engines.SM2Engine;
 //     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //            Phật phù hộ, không bao giờ BUG
 //     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+using Microsoft.AspNetCore.Mvc;
+using SSmartNovelBE.Services.Interfaces;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
+using Microsoft.VisualBasic;
+using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.BlazorIdentity.Pages.Manage;
+using NuGet.Common;
+using Org.BouncyCastle.Ocsp;
+using SmartNovelBE.Models;
+using SmartNovelBE.Services;
+using System.Security.Claims;
+using System.Security.Cryptography;
+using static Org.BouncyCastle.Crypto.Engines.SM2Engine;
+
+
 namespace SmartNovelBE.Controllers
 {
+    [ApiController]
+    [Route("api/novel")]
+    public class NovelController : ControllerBase
+    {
+        private readonly INovelService _novelService;
+
+        public NovelController(
+            INovelService novelService)
+        {
+            _novelService = novelService;
+        }
+
+        [HttpGet("{slug}")]
+        public async Task<IActionResult>
+            GetDetail(string slug)
+        {
+            var result =
+                await _novelService
+                    .GetBySlugAsync(slug);
+
+            if (result == null)
+                return NotFound();
+
+            return Ok(result);
+        }
+        [HttpGet("{novelId}/chapters")]
+        public async Task<IActionResult>
+        GetChapters(string novelId)
+        {
+            var result =
+                await _novelService
+                    .GetChaptersByNovelIdAsync(
+                        novelId);
+            return Ok(result);
     [Route("api/[controller]")]
     [ApiController]
     public class NovelController : ControllerBase

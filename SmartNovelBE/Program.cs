@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using SmartNovelBE.Models;
 using SmartNovelBE.Services;
+using SSmartNovelBE.Services.Interfaces;
 using System.Text;
 using Amazon.S3;
 using Amazon.Runtime;
@@ -10,7 +11,12 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
+        options.JsonSerializerOptions.WriteIndented = true;
+    });
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 var conString = builder.Configuration.GetConnectionString("SmartNovel");
@@ -53,13 +59,14 @@ builder.Services.AddAuthentication(options =>
     };
 });
 builder.Services.AddScoped<JwtServices>();
+builder.Services.AddScoped<INovelService, NovelService>();
 builder.Services.AddAuthorization();
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAngular",
         policy =>
         {
-            policy.WithOrigins("http://localhost:4200")
+            policy.WithOrigins("http://localhost:4200", "http://127.0.0.1:4200")
                   .AllowAnyHeader()
                   .AllowAnyMethod();
         });
@@ -68,13 +75,12 @@ builder.Services.AddTransient<MailServices>();
 builder.Services.AddSingleton<FileStorageServices>();
 builder.Services.AddMemoryCache();
 var app = builder.Build();
-app.UseCors("AllowAngular");
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
 }
-
+app.UseCors("AllowAngular");
 //app.UseHttpsRedirection();
 
 app.UseAuthentication();

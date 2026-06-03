@@ -33,5 +33,9 @@ namespace SmartNovelBE.Models
         }
         public record chapterCreate(string title, int oder, string decrip,
             string status, bool allowComment, string content);
+
+        public record searchNovel(string status, string? keyworld);
+        public record searchChapter(string novelID,string status, string? keyworld);
+
     }
 }

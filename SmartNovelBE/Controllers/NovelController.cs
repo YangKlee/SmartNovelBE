@@ -175,7 +175,7 @@ namespace SmartNovelBE.Controllers
             var uid = User.FindFirst("uid")?.Value;
             if (uid == null)
                 return Unauthorized();
-
+           
             var newNovel = new Novel();
             Guid idNovel = Guid.NewGuid();
             newNovel.NovelId = idNovel.ToString();
@@ -193,7 +193,15 @@ namespace SmartNovelBE.Controllers
             newNovel.ImageNovelUrl = "";
             newNovel.ImageBanerNovelUrl = "";
             newNovel.Uid = uid;
+            foreach (var categoryId in req.Genres)
+            {
 
+                var category = await _context.Categories.FirstOrDefaultAsync(c => c.CategoryId == categoryId);
+                if (newNovel != null && category != null)
+                {
+                    newNovel.Categories.Add(category);
+                }
+            }
             try
             {
                 _context.Novels.Add(newNovel);
@@ -203,18 +211,9 @@ namespace SmartNovelBE.Controllers
                 .Include(n => n.Categories)
                 .FirstOrDefaultAsync(n => n.NovelId == idNovel.ToString());
 
-                foreach (var categoryId in req.Genres)
-                {
-                    var category = await _context.Categories
-                    .FirstOrDefaultAsync(c => c.CategoryId == categoryId);
 
-                    if (novelTemp != null && category != null)
-                    {
-                        novelTemp.Categories.Add(category);
-                    }
-                }
 
-                await _context.SaveChangesAsync();
+                //await _context.SaveChangesAsync();
 
                 string publicLink = "https://pub-20056e4912f440f08b3d40eea545f95f.r2.dev/smart-novel/novel-image/";
                 Guid idFile = Guid.NewGuid();
@@ -249,7 +248,86 @@ namespace SmartNovelBE.Controllers
                     }
                 }
 
-                _context.SaveChangesAsync();
+                await _context.SaveChangesAsync();
+                return Ok();
+            }
+            catch
+            {
+                return BadRequest(new
+                {
+                    Msg = "Something went wrong huhuhuuhhu"
+                });
+            }
+        }
+        [Authorize]
+        [HttpPost("modifyNovel")]
+        public async Task<IActionResult> updateNovel(UserRequests.ModifyNovelRequest req)
+        {
+            var uid = User.FindFirst("uid")?.Value;
+            if (uid == null)
+                return Unauthorized();
+            // tránh mấy thằng tày lấy id truyện và gửi request update
+            var modifyNovel = await _context.Novels.FirstOrDefaultAsync(x => x.NovelId == req.NovelID && x.Uid == uid);
+            if (modifyNovel == null)
+                return BadRequest(new { Msg = "Trứng mà đòi khôn hơn vịt" });
+            modifyNovel.Title = req.Title;
+            modifyNovel.Description = req.Description;
+            modifyNovel.UpdateTime = DateTime.Now;
+            modifyNovel.Status = req.Status;
+            modifyNovel.AgeRating = req.AgeRating;
+            modifyNovel.Categories.Clear();
+            foreach (var categoryId in req.Genres)
+            {
+
+                var category = await _context.Categories.FirstOrDefaultAsync(c => c.CategoryId == categoryId);
+                if (modifyNovel != null && category != null)
+                {
+                    modifyNovel.Categories.Add(category);
+                }
+            }
+            try
+            {
+                
+                await _context.SaveChangesAsync();
+
+
+
+                //await _context.SaveChangesAsync();
+
+                string publicLink = "https://pub-20056e4912f440f08b3d40eea545f95f.r2.dev/smart-novel/novel-image/";
+                Guid idFile = Guid.NewGuid();
+                Guid idFile1 = Guid.NewGuid();
+
+                var novel1 = await _context.Novels.FirstOrDefaultAsync(n => n.NovelId == req.NovelID.ToString());
+
+                if (req.CoverImage != null)
+                {
+                    string fileCoverNameRaw = req.CoverImage.FileName;
+                    string fileCoverName = $"{idFile.ToString()}-{fileCoverNameRaw}";
+                    var resultUploadCover = await _fileServicesUpload.UploadFile("smart-novel/novel-image/",
+                        fileCoverName, req.CoverImage);
+
+                    if (resultUploadCover)
+                    {
+                        novel1.ImageNovelUrl = publicLink + fileCoverName;
+                    }
+                }
+
+                if (req.BannerImage != null)
+                {
+                    string fileBannerNameRaw = req.BannerImage.FileName;
+                    string fileBannerName = $"{idFile1.ToString()}-{fileBannerNameRaw}";
+
+                    var resultUploadBanner = await _fileServicesUpload.UploadFile("smart-novel/novel-image/",
+                        fileBannerName, req.CoverImage); // Lưu ý: Ở đây đang map req.CoverImage thay vì req.BannerImage theo đúng code cũ
+
+                    if (resultUploadBanner)
+                    {
+                        novel1.ImageBanerNovelUrl = publicLink + fileBannerName;
+                    }
+                }
+
+                await _context.SaveChangesAsync();
                 return Ok();
             }
             catch

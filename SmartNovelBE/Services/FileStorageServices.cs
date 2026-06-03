@@ -72,5 +72,25 @@ namespace SmartNovelBE.Services
             return false;
 
         }
+        public async Task<bool> DeleteFile(string path, string fileName)
+        {
+            var bucketName = _configuration["CloudflareR2:BucketName"];
+
+            try
+            {
+                var deleteRequest = new DeleteObjectRequest
+                {
+                    BucketName = bucketName,
+                    Key = path + fileName
+                };
+
+                var response = await _s3Client.DeleteObjectAsync(deleteRequest);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                return false;
+            }
+        }
     }
 }

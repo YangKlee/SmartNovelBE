@@ -19,7 +19,18 @@ namespace SmartNovelBE.Models
             public IFormFile? CoverImage { get; init; }
             public IFormFile? BannerImage { get; init; }
         }
+        public record ModifyNovelRequest
+        {
+            public string NovelID { get; set; }
+            public string Title { get; init; } = string.Empty;
+            public string? Description { get; init; }
+            public string AgeRating { get; init; }
+            public string Status { get; init; } = string.Empty;
+            public List<string> Genres { get; set; }
 
+            public IFormFile? CoverImage { get; init; }
+            public IFormFile? BannerImage { get; init; }
+        }
         public record chapterCreate(string title, int oder, string decrip,
             string status, bool allowComment, string content);
     }

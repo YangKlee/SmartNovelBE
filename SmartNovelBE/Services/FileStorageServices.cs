@@ -20,7 +20,7 @@ namespace SmartNovelBE.Services
             var bucketName = _configuration["CloudflareR2:BucketName"];
             using (MemoryStream stream = new MemoryStream(bytes))
             {
-
+                stream.Position = 0;
                 try
                 {
                     var putRequest = new PutObjectRequest
@@ -32,7 +32,7 @@ namespace SmartNovelBE.Services
                         DisablePayloadSigning = true
                     };
                     var response = await _s3Client.PutObjectAsync(putRequest);
-                    return true;
+                    return response.HttpStatusCode == System.Net.HttpStatusCode.OK;
                 }
                 catch
                 {
@@ -52,6 +52,7 @@ namespace SmartNovelBE.Services
             try
             {
                 using var memoryStream = new MemoryStream();
+                memoryStream.Position = 0;
                 await file.CopyToAsync(memoryStream);
                 var putRequest = new PutObjectRequest
                 {
@@ -63,7 +64,7 @@ namespace SmartNovelBE.Services
                     DisablePayloadSigning = true
                 };
                 var response = await _s3Client.PutObjectAsync(putRequest);
-                return true;
+                return response.HttpStatusCode == System.Net.HttpStatusCode.OK;
             }
             catch
             {
@@ -85,7 +86,7 @@ namespace SmartNovelBE.Services
                 };
 
                 var response = await _s3Client.DeleteObjectAsync(deleteRequest);
-                return true;
+                return response.HttpStatusCode == System.Net.HttpStatusCode.OK;
             }
             catch (Exception ex)
             {

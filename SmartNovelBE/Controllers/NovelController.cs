@@ -21,6 +21,7 @@
 //        Phật phù hộ, không bao giờ BUG
 //  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+using Amazon.Runtime.Internal.Endpoints.StandardLibrary;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -108,7 +109,7 @@ namespace SmartNovelBE.Controllers
                     LikeCount = n.LikeCount,
                     CreateTime = n.CreateTime,
                     UpdateTime = n.UpdateTime,
-
+                    categories = n.Categories,
                     countChapter = n.Chapters.Count(),
                     countChapterPublic = n.Chapters.Count(c => c.Status == "Public"),
                     countChapterDraf = n.Chapters.Count(c => c.Status == "Draft"),
@@ -151,7 +152,7 @@ namespace SmartNovelBE.Controllers
                     UpdateTime = n.UpdateTime,
                     authorId = n.Uid,
                     authorName = n.UidNavigation.DisplayName,
-
+                    categories = n.Categories,
                     novelRating = n.Ratings
                     .Select(r => (double?)r.RatingPoint)
                     .Average() ?? 0
@@ -240,8 +241,7 @@ namespace SmartNovelBE.Controllers
                     string fileBannerName = $"{idFile1.ToString()}-{fileBannerNameRaw}";
 
                     var resultUploadBanner = await _fileServicesUpload.UploadFile("smart-novel/novel-image/",
-                        fileBannerName, req.CoverImage); // Lưu ý: Ở đây đang map req.CoverImage thay vì req.BannerImage theo đúng code cũ
-
+                        fileBannerName, req.BannerImage); 
                     if (resultUploadBanner)
                     {
                         novel1.ImageBanerNovelUrl = publicLink + fileBannerName;
@@ -260,14 +260,14 @@ namespace SmartNovelBE.Controllers
             }
         }
         [Authorize]
-        [HttpPost("modifyNovel")]
-        public async Task<IActionResult> updateNovel(UserRequests.ModifyNovelRequest req)
+        [HttpPut("modifyNovel/{novelID}")]
+        public async Task<IActionResult> updateNovel(string novelID,UserRequests.ModifyNovelRequest req)
         {
             var uid = User.FindFirst("uid")?.Value;
             if (uid == null)
                 return Unauthorized();
             // tránh mấy thằng tày lấy id truyện và gửi request update
-            var modifyNovel = await _context.Novels.FirstOrDefaultAsync(x => x.NovelId == req.NovelID && x.Uid == uid);
+            var modifyNovel = await _context.Novels.Include(x => x.Categories).FirstOrDefaultAsync(x => x.NovelId == novelID && x.Uid == uid);
             if (modifyNovel == null)
                 return BadRequest(new { Msg = "Trứng mà đòi khôn hơn vịt" });
             modifyNovel.Title = req.Title;
@@ -285,7 +285,7 @@ namespace SmartNovelBE.Controllers
                     modifyNovel.Categories.Add(category);
                 }
             }
-            try
+            //try
             {
                 
                 await _context.SaveChangesAsync();
@@ -298,10 +298,18 @@ namespace SmartNovelBE.Controllers
                 Guid idFile = Guid.NewGuid();
                 Guid idFile1 = Guid.NewGuid();
 
-                var novel1 = await _context.Novels.FirstOrDefaultAsync(n => n.NovelId == req.NovelID.ToString());
+                //string prefix = "https://pub-20056e4912f440f08b3d40eea545f95f.r2.dev/smart-novel/novel-image/";
+                var novel1 = await _context.Novels.FirstOrDefaultAsync(n => n.NovelId == novelID);
 
                 if (req.CoverImage != null)
                 {
+                    // xóa file cũ
+                    if(novel1.ImageNovelUrl != null)
+                    {
+                        var fileOldName = novel1.ImageNovelUrl.Replace(publicLink, "");
+                        await _fileServicesUpload.DeleteFile("smart-novel/novel-image/", fileOldName);
+                    }
+                    
                     string fileCoverNameRaw = req.CoverImage.FileName;
                     string fileCoverName = $"{idFile.ToString()}-{fileCoverNameRaw}";
                     var resultUploadCover = await _fileServicesUpload.UploadFile("smart-novel/novel-image/",
@@ -315,11 +323,17 @@ namespace SmartNovelBE.Controllers
 
                 if (req.BannerImage != null)
                 {
+                    // xóa file cũ
+                    if (novel1.ImageBanerNovelUrl != null)
+                    {
+                        var fileOldName = novel1.ImageBanerNovelUrl.Replace(publicLink, "");
+                        await _fileServicesUpload.DeleteFile("smart-novel/novel-image/", fileOldName);
+                    }
                     string fileBannerNameRaw = req.BannerImage.FileName;
                     string fileBannerName = $"{idFile1.ToString()}-{fileBannerNameRaw}";
 
                     var resultUploadBanner = await _fileServicesUpload.UploadFile("smart-novel/novel-image/",
-                        fileBannerName, req.CoverImage); // Lưu ý: Ở đây đang map req.CoverImage thay vì req.BannerImage theo đúng code cũ
+                        fileBannerName, req.BannerImage); 
 
                     if (resultUploadBanner)
                     {
@@ -330,13 +344,62 @@ namespace SmartNovelBE.Controllers
                 await _context.SaveChangesAsync();
                 return Ok();
             }
-            catch
+            //catch
             {
                 return BadRequest(new
                 {
                     Msg = "Something went wrong huhuhuuhhu"
                 });
             }
+        }
+        [Authorize]
+        [HttpDelete("deleteNovel/{NovelID}")]
+        public async Task<IActionResult> deleteNovel(string NovelID)
+        {
+            var uid = User.FindFirst("uid")?.Value;
+            if (uid == null)
+                return Unauthorized();
+            // tránh mấy thằng tày lấy id truyện và gửi request update
+            var deleteNovel = await _context.Novels.Include(x => x.Chapters).FirstOrDefaultAsync(x => x.NovelId == NovelID && x.Uid == uid);
+            if (deleteNovel == null)
+                return BadRequest(new { Msg = "Trứng mà đòi khôn hơn vịt" });
+
+            // gỡ file ảnh khỏi cloud trước
+            string publicLinkImage = "https://pub-20056e4912f440f08b3d40eea545f95f.r2.dev/smart-novel/novel-image/";
+            string publicChapterFile = "https://pub-20056e4912f440f08b3d40eea545f95f.r2.dev/smart-novel/novel-file/";
+            try
+            {
+                if (deleteNovel.ImageNovelUrl != null)
+                {
+                    string fileOldName = deleteNovel.ImageNovelUrl.Replace(publicLinkImage, "");
+                    await _fileServicesUpload.DeleteFile("smart-novel/novel-image/", fileOldName);
+                }
+                if (deleteNovel.ImageBanerNovelUrl != null)
+                {
+                    string fileOldName = deleteNovel.ImageBanerNovelUrl.Replace(publicLinkImage, "");
+                    await _fileServicesUpload.DeleteFile("smart-novel/novel-image/", fileOldName);
+                }
+
+                // quét hết các chapter, gỡ toàn bộ file chapter
+                foreach (Chapter c in deleteNovel.Chapters)
+                {
+                    if (c.ChapterFileUrl != null)
+                    {
+                        string fileOldName = c.ChapterFileUrl.Replace(publicChapterFile, "");
+                        await _fileServicesUpload.DeleteFile("smart-novel/novel-file/", fileOldName);
+                        
+                    }
+                    //_context.Chapters.Remove(c);
+                }
+                _context.Novels.Remove(deleteNovel);
+                await _context.SaveChangesAsync();
+                return Ok();
+            }
+            catch
+            {
+                return BadRequest();
+            }
+
         }
     }
 }

@@ -120,7 +120,16 @@ namespace SmartNovelBE.Controllers
                 })
                 .ToListAsync();
 
-            return Ok(novels);
+            var res = new PaginationRespone<UserRespone.NovelResponseAuthor2>
+            {
+                Data = novels,
+                TotalRecords = totalRecords,
+                PageNumber = pageNumber,
+                PageSize = pageSize,
+            };
+
+            // Đã sửa: Trả về res thay vì novels
+            return Ok(res);
         }
 
         [HttpGet("getInfoNovelForReader/{id}")]

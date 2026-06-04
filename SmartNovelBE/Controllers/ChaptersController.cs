@@ -56,11 +56,16 @@ namespace SmartNovelBE.Controllers
         public async Task<ActionResult<Chapter>> GetChapterForReader([FromQuery] string novelID, [FromQuery] string chapterID)
         {
             var roleId = User.FindFirstValue(ClaimTypes.Role);
-            if (roleId == null && roleId == "4")
+            if (string.IsNullOrEmpty(roleId) || roleId == "4")
             {
-                var checkStatusChapter = await _context.Chapters.AnyAsync(n => n.ChapterId == chapterID && n.Status != "Public");
-                if (checkStatusChapter)
-                    return Unauthorized();
+                // Kiểm tra xem chapter có tồn tại và trạng thái không phải public hay không
+                var isPrivateChapter = await _context.Chapters
+                    .AnyAsync(n => n.ChapterId == chapterID && n.Status != "public");
+
+                if (isPrivateChapter)
+                {
+                    return Unauthorized(); 
+                }
             }
             var chapter = await _context.Chapters
                 .FirstOrDefaultAsync(c => c.ChapterId == chapterID &&
@@ -153,8 +158,8 @@ namespace SmartNovelBE.Controllers
         public async Task<ActionResult<Chapter>> getChapterByNovel(string novelID)
         {
             // rào trước đề phòng lấy id và xem truyện người khác
-            var uid = User.FindFirst("uid")?.Value;
-            var ehe = await _context.Novels.AnyAsync(n => n.NovelId == novelID && n.Uid == uid);
+            //var uid = User.FindFirst("uid")?.Value;
+            //var ehe = await _context.Novels.AnyAsync(n => n.NovelId == novelID && n.Uid == uid);
             if (!ehe)
                 return Unauthorized();
             var chapters=  await _context.Chapters.Where(c => c.NovelId == novelID).OrderBy(c => c.ChaperOrder).ToListAsync();

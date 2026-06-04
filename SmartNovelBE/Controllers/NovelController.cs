@@ -153,9 +153,11 @@ namespace SmartNovelBE.Controllers
         public async Task<IActionResult> getInfoNovelForReader(string id)
         {
             var roleId = User.FindFirstValue(ClaimTypes.Role);
-            if (roleId == null || roleId == "4")
+            if (string.IsNullOrEmpty(roleId) || roleId == "4")
             {
-                var checkStatusNovel = await _context.Novels.AnyAsync(n => n.NovelId == id && n.Status != "Public");
+                var checkStatusNovel = await _context.Novels
+                    .AnyAsync(n => n.NovelId == id && n.Status != null && n.Status != "public");
+
                 if (checkStatusNovel)
                     return Unauthorized();
             }

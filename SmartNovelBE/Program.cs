@@ -1,12 +1,13 @@
+using Amazon.Runtime;
+using Amazon.S3;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using SmartNovel.Services;
 using SmartNovelBE.Models;
 using SmartNovelBE.Services;
 using SSmartNovelBE.Services.Interfaces;
 using System.Text;
-using Amazon.S3;
-using Amazon.Runtime;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -17,6 +18,9 @@ builder.Services.AddControllers()
         options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
         options.JsonSerializerOptions.WriteIndented = true;
     });
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
+
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 var conString = builder.Configuration.GetConnectionString("SmartNovel");
@@ -61,6 +65,8 @@ builder.Services.AddAuthentication(options =>
 builder.Services.AddScoped<JwtServices>();
 builder.Services.AddScoped<INovelService, NovelService>();
 builder.Services.AddAuthorization();
+builder.Services.AddScoped<IHomeService, HomeService>();
+builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAngular",
@@ -79,6 +85,8 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
+    app.UseSwagger();
+    app.UseSwaggerUI();
 }
 app.UseCors("AllowAngular");
 //app.UseHttpsRedirection();

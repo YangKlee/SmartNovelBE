@@ -42,7 +42,7 @@ using static Org.BouncyCastle.Crypto.Engines.SM2Engine;
 namespace SmartNovelBE.Controllers
 {
     [ApiController]
-    [Route("api/novel")]
+    [Route("api/[controller]")]
     public class NovelController : ControllerBase
     {
         private readonly INovelService _novelService;
@@ -68,10 +68,10 @@ namespace SmartNovelBE.Controllers
             _fileServicesUpload = fileServicesUpload;
         }
 
-        [HttpGet("{slug}")]
-        public async Task<IActionResult> GetDetail(string slug)
+        [HttpGet("{novelID}")]
+        public async Task<IActionResult> GetDetail(string novelID)
         {
-            var result = await _novelService.GetBySlugAsync(slug);
+            var result = await _context.Novels.FirstOrDefaultAsync(n => n.NovelId == novelID);
 
             if (result == null)
                 return NotFound();
@@ -82,7 +82,7 @@ namespace SmartNovelBE.Controllers
         [HttpGet("{novelId}/chapters")]
         public async Task<IActionResult> GetChapters(string novelId)
         {
-            var result = await _novelService.GetChaptersByNovelIdAsync(novelId);
+            var result = await _context.Chapters.Where(c => c.NovelId == novelId && c.Status.ToLower() == "public").ToListAsync();
             return Ok(result);
         }
 

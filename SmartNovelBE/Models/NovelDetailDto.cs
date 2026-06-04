@@ -12,7 +12,7 @@
 
         public string AgeRating { get; set; } = null!;
 
-        public string? ImageNovelUrl { get; set; }
+        public string? imageNovelUrl { get; set; }
 
         public string? ImageBanerNovelUrl { get; set; }
 
@@ -25,6 +25,7 @@
         public int ViewCount { get; set; }
 
         public int LikeCount { get; set; }
+
 
         public DateTime? CreateTime { get; set; }
 

@@ -1,12 +1,13 @@
+using Amazon.Runtime;
+using Amazon.S3;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using SmartNovel.Services;
 using SmartNovelBE.Models;
 using SmartNovelBE.Services;
 using SSmartNovelBE.Services.Interfaces;
 using System.Text;
-using Amazon.S3;
-using Amazon.Runtime;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -60,6 +61,7 @@ builder.Services.AddAuthentication(options =>
 });
 builder.Services.AddScoped<JwtServices>();
 builder.Services.AddScoped<INovelService, NovelService>();
+builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddAuthorization();
 builder.Services.AddCors(options =>
 {

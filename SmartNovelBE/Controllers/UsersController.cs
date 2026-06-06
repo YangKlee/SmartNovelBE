@@ -179,13 +179,13 @@ namespace SmartNovelBE.Controllers
             var newUser = new User
             {
                 Uid = Guid.NewGuid().ToString(),
-                DisplayName = model.Displayname,
+                DisplayName = model.DisplayName,
                 Username = model.Username,
                 Email = model.Email,
-                Phone = model.PhoneNumber,
+                Phone = model.Phone,
                 CreatorPoint = model.CreatorPoint,
                 Password = model.Password, // Lưu ý: Cần mã hóa (Hash) mật khẩu trước khi lưu ở thực tế
-                RoleId = model.RoleID,
+                RoleId = model.RoleId,
                 Status = model.Status
             };
 
@@ -208,14 +208,14 @@ namespace SmartNovelBE.Controllers
             bool emailConflict = await _context.Users.AnyAsync(u => u.Email == model.Email && u.Uid != id);
             if (emailConflict) return BadRequest(new { message = "Email này đã được tài khoản khác sử dụng!" });
 
-            existingUser.DisplayName = model.Displayname;
+            existingUser.DisplayName = model.DisplayName;
             existingUser.Email = model.Email;
-            existingUser.RoleId = model.RoleID;
+            existingUser.RoleId = model.RoleId;
             existingUser.Status = model.Status;
 
-            if (!string.IsNullOrEmpty(model.NewPassword))
+            if (!string.IsNullOrEmpty(model.Password))
             {
-                existingUser.Password = model.NewPassword;
+                existingUser.Password = model.Password;
             }
 
             _context.Users.Update(existingUser);

@@ -76,10 +76,10 @@ namespace SmartNovel.Services
 
             try
             {
-            _context.Users.Add(newUser);
-            await _context.SaveChangesAsync();
-            return newUser;
-        }
+                _context.Users.Add(newUser);
+                await _context.SaveChangesAsync();
+                return newUser;
+            }
             catch (Microsoft.EntityFrameworkCore.DbUpdateException ex)
             {
                 string exactError = ex.InnerException != null ? ex.InnerException.Message : ex.Message;
@@ -105,15 +105,13 @@ namespace SmartNovel.Services
             if (!string.IsNullOrEmpty(model.Password))
                 existingUser.Password = BCrypt.Net.BCrypt.HashPassword(model.Password);
 
-            if (!string.IsNullOrEmpty(model.NewPassword))
-                existingUser.Password = model.NewPassword;
 
             try
             {
-            _context.Users.Update(existingUser);
-            await _context.SaveChangesAsync();
-            return existingUser;
-        }
+                _context.Users.Update(existingUser);
+                await _context.SaveChangesAsync();
+                return existingUser;
+            }
             catch (Microsoft.EntityFrameworkCore.DbUpdateException ex)
             {
                 string exactError = ex.InnerException != null ? ex.InnerException.Message : ex.Message;

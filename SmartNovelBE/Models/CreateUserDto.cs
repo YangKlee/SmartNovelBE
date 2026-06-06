@@ -1,12 +1,12 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace SmartNovelBE.DTOs.AdminUser 
+namespace SmartNovelBE.DTOs.AdminUser
 {
     public class CreateUserDto
     {
         [Required(ErrorMessage = "Vui lòng nhập họ và tên.")]
         [MaxLength(100, ErrorMessage = "Họ tên không được vượt quá 100 ký tự.")]
-        public string DisplayName { get; set; } 
+        public string DisplayName { get; set; }
 
         [Required(ErrorMessage = "Vui lòng nhập tên đăng nhập.")]
         [RegularExpression(@"^[a-zA-Z0-9]+$", ErrorMessage = "Tên đăng nhập không được chứa khoảng trắng hoặc ký tự đặc biệt.")]
@@ -23,9 +23,6 @@ namespace SmartNovelBE.DTOs.AdminUser
         [MinLength(6, ErrorMessage = "Mật khẩu phải có ít nhất 6 ký tự.")]
         public string Password { get; set; }
 
-        [Required(ErrorMessage = "Vui lòng xác nhận lại mật khẩu.")]
-        [Compare("Password", ErrorMessage = "Mật khẩu nhập lại không khớp.")]
-        public string ConfirmPassword { get; set; }
 
         [Required(ErrorMessage = "Vui lòng chọn quyền cho người dùng.")]
         public string RoleId { get; set; }

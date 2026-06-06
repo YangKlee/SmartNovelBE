@@ -160,8 +160,8 @@ namespace SmartNovelBE.Controllers
             // rào trước đề phòng lấy id và xem truyện người khác
             //var uid = User.FindFirst("uid")?.Value;
             //var ehe = await _context.Novels.AnyAsync(n => n.NovelId == novelID && n.Uid == uid);
-            if (!ehe)
-                return Unauthorized();
+            //if (!ehe)
+            //    return Unauthorized();
             var chapters=  await _context.Chapters.Where(c => c.NovelId == novelID).OrderBy(c => c.ChaperOrder).ToListAsync();
             return Ok(chapters);
         }

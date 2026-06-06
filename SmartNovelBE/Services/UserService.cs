@@ -2,6 +2,7 @@
 using SmartNovelBE.DTOs.AdminUser;
 using SmartNovelBE.Models;
 using SmartNovelBE.Services;
+using System.Net.Quic;
 
 namespace SmartNovel.Services
 {
@@ -14,7 +15,7 @@ namespace SmartNovel.Services
             _context = context;
         }
 
-        public async Task<object> GetUsersAsync(string keyword, string role, string status, int page, int pageSize = 10)
+        public async Task<object> GetUsersAsync(string? keyword, string? role, string? status, int page, int pageSize = 10)
         {
             var query = _context.Users.AsQueryable();
 
@@ -26,36 +27,65 @@ namespace SmartNovel.Services
 
             if (!string.IsNullOrEmpty(status))
                 query = query.Where(u => u.Status == status);
-
+            int skip = (page - 1) * pageSize;
             int totalUsers = await query.CountAsync();
             int totalPages = (int)Math.Ceiling(totalUsers / (double)pageSize);
-            var users = await query.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
+            var userDtos = await query
+                .Skip(skip)
+                .Take(pageSize)
+                .Select(u => new UserListDto
+                {
+                    Uid = u.Uid,
+                    Username = u.Username,
+                    DisplayName = u.DisplayName,
+                    Email = u.Email,
+                    Phone = u.Phone,
+                    RoleId = u.RoleId,
+                    Status = u.Status,
+                    CreatorPoint = u.CreatorPoint,
+                    Birthday = u.Birthday
+                })
+                .ToListAsync();
 
-            // Trả về một object chứa cả dữ liệu lẫn thông tin phân trang
-            return new { Data = users, CurrentPage = page, TotalPages = totalPages, TotalUsers = totalUsers };
+            return new
+            {
+                Data = userDtos,
+                TotalPages = totalPages,
+                TotalUsers = totalUsers,
+                CurrentPage = page
+            };
         }
 
         public async Task<User> CreateUserAsync(CreateUserDto model)
         {
             bool isExists = await _context.Users.AnyAsync(u => u.Username == model.Username || u.Email == model.Email);
             if (isExists) throw new Exception("Tên đăng nhập hoặc Email đã được sử dụng!");
-
+            string hashedPassword = BCrypt.Net.BCrypt.HashPassword(model.Password);
             var newUser = new User
             {
                 Uid = Guid.NewGuid().ToString(),
-                DisplayName = model.Displayname,
+                DisplayName = model.DisplayName,
                 Username = model.Username,
                 Email = model.Email,
-                Phone = model.PhoneNumber,
+                Phone = model.Phone,
                 CreatorPoint = model.CreatorPoint,
-                Password = model.Password,
-                RoleId = model.RoleID,
+                Password = hashedPassword,
+                RoleId = model.RoleId,
                 Status = model.Status
             };
 
+            try
+            {
             _context.Users.Add(newUser);
             await _context.SaveChangesAsync();
             return newUser;
+        }
+            catch (Microsoft.EntityFrameworkCore.DbUpdateException ex)
+            {
+                string exactError = ex.InnerException != null ? ex.InnerException.Message : ex.Message;
+
+                throw new Exception("Lỗi Database: " + exactError);
+            }
         }
 
         public async Task<User> UpdateUserAsync(UpdateUserDto model)
@@ -66,17 +96,30 @@ namespace SmartNovel.Services
             bool emailConflict = await _context.Users.AnyAsync(u => u.Email == model.Email && u.Uid != model.Uid);
             if (emailConflict) throw new Exception("Email này đã được tài khoản khác sử dụng!");
 
-            existingUser.DisplayName = model.Displayname;
+            existingUser.DisplayName = model.DisplayName;
             existingUser.Email = model.Email;
-            existingUser.RoleId = model.RoleID;
+            existingUser.RoleId = model.RoleId;
             existingUser.Status = model.Status;
+            existingUser.Phone = model.Phone;
+            existingUser.CreatorPoint = model.CreatorPoint;
+            if (!string.IsNullOrEmpty(model.Password))
+                existingUser.Password = BCrypt.Net.BCrypt.HashPassword(model.Password);
 
             if (!string.IsNullOrEmpty(model.NewPassword))
                 existingUser.Password = model.NewPassword;
 
+            try
+            {
             _context.Users.Update(existingUser);
             await _context.SaveChangesAsync();
             return existingUser;
+        }
+            catch (Microsoft.EntityFrameworkCore.DbUpdateException ex)
+            {
+                string exactError = ex.InnerException != null ? ex.InnerException.Message : ex.Message;
+
+                throw new Exception("Lỗi Database: " + exactError);
+            }
         }
 
         public async Task<bool> DeleteUserAsync(string id)

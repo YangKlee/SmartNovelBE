@@ -10,4 +10,6 @@ namespace SmartNovelBE.Services
         Task<User> UpdateUserAsync(UpdateUserDto model);
         Task<bool> DeleteUserAsync(string id);
     }
+
+
 }

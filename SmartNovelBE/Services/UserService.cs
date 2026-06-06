@@ -82,7 +82,6 @@ namespace SmartNovel.Services
             }
             catch (Microsoft.EntityFrameworkCore.DbUpdateException ex)
             {
-                // 🌟 CHIÊU CUỐI: Móc chính xác câu báo lỗi của SQL Server ra để gửi về Angular
                 string exactError = ex.InnerException != null ? ex.InnerException.Message : ex.Message;
 
                 throw new Exception("Lỗi Database: " + exactError);
@@ -115,7 +114,6 @@ namespace SmartNovel.Services
             }
             catch (Microsoft.EntityFrameworkCore.DbUpdateException ex)
             {
-                // 🌟 CHIÊU CUỐI: Móc chính xác câu báo lỗi của SQL Server ra để gửi về Angular
                 string exactError = ex.InnerException != null ? ex.InnerException.Message : ex.Message;
 
                 throw new Exception("Lỗi Database: " + exactError);

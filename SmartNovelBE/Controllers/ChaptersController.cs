@@ -216,8 +216,16 @@ namespace SmartNovelBE.Controllers
             using var httpClient = new HttpClient();
             if (url != null)
             {
-                var content = await httpClient.GetStringAsync(url);
-                return Content(content, "text/html; charset=utf-8");
+                try
+                {
+                    var content = await httpClient.GetStringAsync(url);
+                    return Content(content, "text/html; charset=utf-8");
+                }
+                catch
+                {
+                    return Content("<h1>Lỗi khi tải truyện</h1>", "text/html; charset=utf-8");
+                }
+               
             }
             return BadRequest();
         }

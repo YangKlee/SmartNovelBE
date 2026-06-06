@@ -10,7 +10,7 @@ using SSmartNovelBE.Services.Interfaces;
 using System.Text;
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
+    // Add services to the container.
 
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
@@ -47,11 +47,7 @@ builder.Services.AddAuthentication(options =>
     options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
 
 
-}).AddJwtBearer(options =>
-{
-    options.RequireHttpsMetadata = false;
-    options.SaveToken = true;
-    options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
+    }).AddJwtBearer(options =>
     {
         ValidIssuer = builder.Configuration["JwtConfig:Issuer"],
         ValidAudience= builder.Configuration["JwtConfig:Audience"],
@@ -91,9 +87,9 @@ if (app.Environment.IsDevelopment())
 app.UseCors("AllowAngular");
 //app.UseHttpsRedirection();
 
-app.UseAuthentication();
-app.UseAuthorization();
+    app.UseAuthentication();
+    app.UseAuthorization();
 
-app.MapControllers();
+    app.MapControllers();
 
-app.Run();
+    app.Run();

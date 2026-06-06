@@ -114,6 +114,31 @@ namespace SmartNovelBE.Controllers
             return NoContent();
         }
 
+        // GET: api/Users/authors
+        [HttpGet("authors")]
+        [AllowAnonymous] // Cho phép Angular gọi công khai ngoài bộ lọc mà không cần login
+        public async Task<IActionResult> GetAuthorsOnly()
+        {
+            try
+            {
+                // Lọc ra các User có RoleID là '3' (Tác giả) và đang hoạt động (ACTIVE)
+                var authors = await _context.Users
+                    .Where(u => u.RoleId == "3" && u.Status == "ACTIVE")
+                    .Select(u => new
+                    {
+                        Uid = u.Uid,
+                        DisplayName = u.DisplayName
+                    })
+                    .ToListAsync();
+
+                return Ok(authors);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Lỗi hệ thống: {ex.Message}");
+            }
+        }
+
         private bool UserExists(string id)
         {
             return _context.Users.Any(e => e.Uid == id);

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -20,7 +20,24 @@ namespace SmartNovelBE.Controllers
             _context = context;
         }
 
-        // GET: api/Categories
+        // ==========================================
+        // API TỪ NHÁNH TIM_KIEM
+        // ==========================================
+        
+        // API: GET /api/categories
+        [HttpGet]
+        public async Task<IActionResult> GetAllCategories()
+        {
+            // Lấy toàn bộ thể loại từ bảng Category trong DB ra
+            var categories = await _context.Categories.ToListAsync();
+            return Ok(categories);
+        }
+
+        // ==========================================
+        // API TỪ NHÁNH SPRINT1-DEV
+        // ==========================================
+
+        // GET: api/Categories/Active
         [HttpGet("Active")]
         public async Task<ActionResult<IEnumerable<Category>>> GetCategoriesActive()
         {

@@ -43,7 +43,7 @@ namespace SmartNovelBE.Services
 
                 AgeRating = novel.AgeRating,
 
-                ImageNovelUrl = novel.ImageNovelUrl,
+                imageNovelUrl = novel.ImageNovelUrl,
 
                 ImageBanerNovelUrl = novel.ImageBanerNovelUrl,
 

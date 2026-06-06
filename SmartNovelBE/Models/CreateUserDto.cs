@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace SmartNovelBE.DTOs.AdminUser
+namespace SmartNovelBE.DTOs.AdminUser 
 {
     public class CreateUserDto
     {
@@ -23,6 +23,9 @@ namespace SmartNovelBE.DTOs.AdminUser
         [MinLength(6, ErrorMessage = "Mật khẩu phải có ít nhất 6 ký tự.")]
         public string Password { get; set; }
 
+        [Required(ErrorMessage = "Vui lòng xác nhận lại mật khẩu.")]
+        [Compare("Password", ErrorMessage = "Mật khẩu nhập lại không khớp.")]
+        public string ConfirmPassword { get; set; }
 
         [Required(ErrorMessage = "Vui lòng chọn quyền cho người dùng.")]
         public string RoleId { get; set; }

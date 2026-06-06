@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace SmartNovelBE.DTOs.AdminUser
+namespace SmartNovelBE.DTOs.AdminUser 
 {
     public class UpdateUserDto
     {

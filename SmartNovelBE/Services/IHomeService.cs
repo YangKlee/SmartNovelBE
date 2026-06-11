@@ -10,6 +10,8 @@ namespace SmartNovelBE.Services
         Task<List<NovelSummaryDto>> GetRecommendedNovelsAsync(string? currentUserId); 
         Task<List<NovelSummaryDto>> GetAdminRecommendNovelsAsync(); 
         Task<List<NovelSummaryDto>> GetSidebarNewUpdateAsync(string? currentUserId); 
-        Task<List<AuthorSummaryDto>> GetTopAuthorsAsync(); 
+        Task<List<AuthorSummaryDto>> GetTopAuthorsAsync();
+
+        Task<List<NovelSummaryDto>> GetNovelFlowingAsync(string ?currenUserId);
     }
 }

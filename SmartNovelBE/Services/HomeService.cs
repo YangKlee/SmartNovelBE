@@ -218,5 +218,35 @@ namespace SmartNovelBE.Services
                 })
                 .ToListAsync();
         }
+
+
+        public async Task<List<NovelSummaryDto>> GetNovelFlowingAsync(string? currentUserId)
+        {
+            var followedNovel = await _context.Users
+                .Where(u => u.Uid == currentUserId)
+                .SelectMany(u => u.Novels)
+                .Select(n => new NovelSummaryDto
+                {
+                    NovelId = n.NovelId,
+                    Title = n.Title,
+                    Slug = n.Slug,
+                    imageNovelUrl = n.ImageNovelUrl,
+                    imageBanerNovelUrl = n.ImageBanerNovelUrl ?? "",
+                    AuthorName = n.UidNavigation.DisplayName,
+
+                    Status = n.Status,
+                    ViewCount = n.ViewCount ?? 0,
+                    LikeCount = n.LikeCount ?? 0,
+                    AgeRating = n.AgeRating,
+                    Description = n.Description ?? "",
+
+                    CountChapter = n.Chapters.Count(),
+
+                    Categories = n.Categories.Select(c => c.Name).ToList()
+                }).ToListAsync();
+
+            return followedNovel;
+        }
+
     }
 }

@@ -59,11 +59,11 @@ namespace SmartNovelBE.Models
 
         public record CommentResponse
         {
-            public int? CommentId { get; init; }
-            public int? NovelId { get; init; }
-            public int? ChapterId { get; init; }
-            public int? ParentCommentId { get; init; }
-            public int? UserId { get; init; }
+            public string? CommentId { get; init; }
+            public string? NovelId { get; init; }
+            public string? ChapterId { get; init; }
+            public string? ParentCommentId { get; init; }
+            public string? UserId { get; init; }
             public string? Content { get; init; }
             public string? DisplayName { get; init; }
             public string? UserAvatarUrl { get; init; }
@@ -72,6 +72,11 @@ namespace SmartNovelBE.Models
             public string? RoleId { get; init; }
             public bool IsAdminMode { get; init; } = false;
             public int CountChildComment { get; init; } = 0;
+        }
+        public record CommentReponeReal
+        {
+            public List<CommentResponse> comments { set; get; }
+            public int totalComment { set; get; } = 0;
         }
     }
     

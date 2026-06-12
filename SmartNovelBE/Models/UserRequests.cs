@@ -38,6 +38,7 @@ namespace SmartNovelBE.Models
         public record searchChapter(string novelID,string status, string? keyworld);
 
         public record uploadAvatar(IFormFile? NewImage);
+        public record addComment(string novelId, string chapterId, string content, string? parentComment = "");
 
     }
 }

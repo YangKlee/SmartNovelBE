@@ -82,6 +82,7 @@ builder.Services.AddAuthentication(options =>
 builder.Services.AddScoped<JwtServices>();
 builder.Services.AddScoped<INovelService, NovelService>();
 builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<IHomeService, HomeService>();
 builder.Services.AddAuthorization();
 builder.Services.AddCors(options =>

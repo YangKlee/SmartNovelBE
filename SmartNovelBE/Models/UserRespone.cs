@@ -1,4 +1,4 @@
-﻿namespace SmartNovelBE.Models
+namespace SmartNovelBE.Models
 {
     public class UserRespone
     {
@@ -57,6 +57,22 @@
             public double novelRating { get; set; }
         }
 
+        public record CommentResponse
+        {
+            public int? CommentId { get; init; }
+            public int? NovelId { get; init; }
+            public int? ChapterId { get; init; }
+            public int? ParentCommentId { get; init; }
+            public int? UserId { get; init; }
+            public string? Content { get; init; }
+            public string? DisplayName { get; init; }
+            public string? UserAvatarUrl { get; init; }
+            public DateTime? CommentDateTime { get; init; }
+            public string? CurrentUserId { get; init; }
+            public string? RoleId { get; init; }
+            public bool IsAdminMode { get; init; } = false;
+            public int CountChildComment { get; init; } = 0;
+        }
     }
     
 }

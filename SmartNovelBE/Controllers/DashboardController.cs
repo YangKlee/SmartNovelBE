@@ -10,14 +10,14 @@ namespace SmartNovelBE.Controllers
     [Route("api/[controller]")]
     [ApiController]
     [Authorize(Roles = "1,2,3")]
-    public class DashboardServices : Controller
+    public class DashboardController : Controller
     {
         private readonly JwtServices _jwtServices;
         private readonly SmartTruyenDbContext _context;
         private readonly MailServices _mailServices;
         private readonly IMemoryCache _cache;
         private readonly MenuDashboardService _menuDashboardService;
-        public DashboardServices(JwtServices jwtServices, SmartTruyenDbContext context, MailServices mailServices, IMemoryCache cache, MenuDashboardService menuDashboardService)
+        public DashboardController(JwtServices jwtServices, SmartTruyenDbContext context, MailServices mailServices, IMemoryCache cache, MenuDashboardService menuDashboardService)
         {
             _jwtServices = jwtServices;
             _context = context;

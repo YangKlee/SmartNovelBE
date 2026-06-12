@@ -23,14 +23,10 @@ namespace SmartNovelBE.Services
                     break;
                 case "3": // Author
                     menu.Add(new MenuDashboard { Title = "Dashboard", ActionUrl = "/dashboard", Icon = "dashboard" });
-                    menu.Add(new MenuDashboard { Title = "Truyện của tôi", ActionUrl = "/dashboard/my-novels", Icon = "book" });
-                    menu.Add(new MenuDashboard { Title = "Thêm truyện mới", ActionUrl = "/dashboard/add-novel", Icon = "add_box" });
-                    menu.Add(new MenuDashboard { Title = "Thống kê", ActionUrl = "/dashboard/statistics", Icon = "bar_chart" });
+                    menu.Add(new MenuDashboard { Title = "Truyện của tôi", ActionUrl = "/dashboard/author/novel-manager", Icon = "book" });
+                    menu.Add(new MenuDashboard { Title = "Thêm truyện mới", ActionUrl = "/dashboard/author/novel-manager/create-novel", Icon = "add_box" });
                     break;
-                case "4": // Reader
-                    menu.Add(new MenuDashboard { Title = "Thông tin tài khoản", ActionUrl = "/account/update-info", Icon = "account_circle" });
-                    menu.Add(new MenuDashboard { Title = "Bảo mật", ActionUrl = "/account/change-password", Icon = "security" });
-                    break;
+
                 default:
                     break;
             }

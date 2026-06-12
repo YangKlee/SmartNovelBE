@@ -26,8 +26,8 @@ namespace SmartNovelBE.Controllers
         }
         [HttpGet("getComment")]
 
-        public async Task<IActionResult> getComment([FromQuery] string novelID, [FromQuery] string chapterId, 
-            [FromQuery] int currentComment = 0, [FromQuery] int  limitComment = 5, [FromQuery] string? parentComment = null)
+        public async Task<IActionResult> getComment([FromQuery] string novelID, [FromQuery] string chapterId,
+            [FromQuery] int currentComment = 0, [FromQuery] int limitComment = 5, [FromQuery] string? parentComment = null)
         {
             var roleId = User.FindFirstValue(ClaimTypes.Role);
             var currentUserId = User.FindFirstValue("uid");
@@ -157,6 +157,97 @@ namespace SmartNovelBE.Controllers
                 return BadRequest(new { Msg = "Lỗi khi xóa bình luận: " + ex.Message });
             }
         }
-    }
 
+        [Authorize(Roles = "3")]
+        [HttpPost("getAllCommentAuthor")]
+        public async Task<IActionResult> getAllCommentAuthor([FromBody] UserRequests.readerComment req)
+        {
+            var currentUserId = User.FindFirstValue("uid");
+            var roleId = User.FindFirstValue(ClaimTypes.Role);
+
+            if (string.IsNullOrEmpty(currentUserId))
+                return Unauthorized(new { Msg = "Vui lòng đăng nhập" });
+
+            // Lấy comment thuộc các truyện của tác giả này
+            var commentsQuery = _context.Comments
+                .Include(c => c.Chapter)
+                    .ThenInclude(c => c.Novel)
+                .Include(c => c.UidNavigation)
+                .Include(c => c.InverseParentComment)
+                .Where(c => c.Chapter.Novel.Uid == currentUserId);
+
+            // 1. Lọc theo truyện
+            if (!string.IsNullOrEmpty(req.novelId))
+            {
+                commentsQuery = commentsQuery.Where(c => c.Chapter.Novel.NovelId == req.novelId);
+            }
+
+            // 2. Lọc theo chương
+            if (!string.IsNullOrEmpty(req.chapterId))
+            {
+                commentsQuery = commentsQuery.Where(c => c.ChapterId == req.chapterId);
+            }
+
+            // 3. Lọc theo keyword (tìm trong nội dung)
+            if (!string.IsNullOrEmpty(req.keyworld))
+            {
+                commentsQuery = commentsQuery.Where(c => c.Content.Contains(req.keyworld));
+            }
+
+            // 4. Lọc theo comment cha
+            if (string.IsNullOrEmpty(req.parentCommentID))
+            {
+                commentsQuery = commentsQuery.Where(c => c.ParentCommentId == null);
+            }
+            else
+            {
+                commentsQuery = commentsQuery.Where(c => c.ParentCommentId == req.parentCommentID);
+            }
+
+            // Phân trang
+            int limit = 5;
+            int page = 1;
+            int.TryParse(req.pageLimit, out limit);
+            int.TryParse(req.currentPage, out page);
+
+            if (limit <= 0) limit = 5;
+            if (page <= 0) page = 1;
+
+            int skip = (page - 1) * limit;
+
+            var totalComment = await commentsQuery.CountAsync();
+
+            var comments = await commentsQuery
+                .OrderByDescending(c => c.TimeCommeny)
+                .Skip(skip)
+                .Take(limit)
+                .Select(c => new UserRespone.CommentResponse
+                {
+                    CommentId = c.CommentId,
+                    NovelId = c.Chapter.Novel.NovelId,
+                    ChapterId = c.ChapterId,
+                    ParentCommentId = c.ParentCommentId,
+                    UserId = c.Uid,
+                    Content = c.Content,
+                    DisplayName = c.UidNavigation.DisplayName,
+                    UserAvatarUrl = c.UidNavigation.AvartarUrl,
+                    CommentDateTime = c.TimeCommeny,
+                    CurrentUserId = currentUserId,
+                    RoleId = c.UidNavigation.RoleId,
+                    IsAdminMode = (roleId == "1" || roleId == "2"),
+                    CountChildComment = c.InverseParentComment.Count()
+                })
+                .ToListAsync();
+
+            var res = new PhanTrang<UserRespone.CommentResponse>
+            {
+                datas = comments,
+                TotalRecords = totalComment,
+                PageNumber = page,
+                PageSize = limit
+            };
+
+            return Ok(res);
+        }
+    }
 }

@@ -83,6 +83,7 @@ builder.Services.AddScoped<JwtServices>();
 builder.Services.AddScoped<INovelService, NovelService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IHomeService, HomeService>();
+builder.Services.AddScoped<MenuDashboardService>();
 builder.Services.AddAuthorization();
 builder.Services.AddCors(options =>
 {

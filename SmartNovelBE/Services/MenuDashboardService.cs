@@ -25,6 +25,7 @@ namespace SmartNovelBE.Services
                     menu.Add(new MenuDashboard { Title = "Dashboard", ActionUrl = "/dashboard", Icon = "dashboard" });
                     menu.Add(new MenuDashboard { Title = "Truyện của tôi", ActionUrl = "/dashboard/author/novel-manager", Icon = "book" });
                     menu.Add(new MenuDashboard { Title = "Thêm truyện mới", ActionUrl = "/dashboard/author/novel-manager/create-novel", Icon = "add_box" });
+                    menu.Add(new MenuDashboard { Title = "Bình luận độc giả", ActionUrl = "/dashboard/author/comment-reader", Icon = "comment" });
                     break;
 
                 default:

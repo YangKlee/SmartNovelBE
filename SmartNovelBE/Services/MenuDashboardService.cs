@@ -12,8 +12,9 @@ namespace SmartNovelBE.Services
             {
                 case "1": // Admin
                     menu.Add(new MenuDashboard { Title = "Dashboard", ActionUrl = "/dashboard/admin", Icon = "dashboard" });
-                    menu.Add(new MenuDashboard { Title = "Quản lý người dùng", ActionUrl = "/dashboard/user-manager", Icon = "people" });
-                    menu.Add(new MenuDashboard { Title = "Quản lý truyện", ActionUrl = "/dashboard/novel-manager", Icon = "menu_book" });
+                    menu.Add(new MenuDashboard { Title = "Quản lý người dùng", ActionUrl = "/dashboard/admin/user-manager", Icon = "people" });
+                    menu.Add(new MenuDashboard { Title = "Quản lý truyện", ActionUrl = "/dashboard/moderator/novel-manager", Icon = "fact_check" });
+                    menu.Add(new MenuDashboard { Title = "Quản lý bình luận", ActionUrl = "/dashboard/moderator/novel-comment", Icon = "report" });
                     menu.Add(new MenuDashboard { Title = "Cài đặt hệ thống", ActionUrl = "/dashboard/settings", Icon = "settings" });
                     break;
                 case "2": // Mod/Censor

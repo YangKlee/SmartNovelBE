@@ -108,16 +108,16 @@ namespace SmartNovelBE.Controllers
                     AgeRating = n.AgeRating,
                     ImageNovelUrl = n.ImageNovelUrl,
                     ImageBanerNovelUrl = n.ImageBanerNovelUrl,
-                    Status = n.Status,
+                    Status = n.Status.ToLower(),
                     ViewCount = n.ViewCount,
                     LikeCount = n.LikeCount,
                     CreateTime = n.CreateTime,
                     UpdateTime = n.UpdateTime,
                     categories = n.Categories,
                     countChapter = n.Chapters.Count(),
-                    countChapterPublic = n.Chapters.Count(c => c.Status == "Public"),
-                    countChapterDraf = n.Chapters.Count(c => c.Status == "Draft"),
-                    countChapterRemove = n.Chapters.Count(c => c.Status == "Cancel"),
+                    countChapterPublic = n.Chapters.Count(c => c.Status.ToLower() == "public"),
+                    countChapterDraf = n.Chapters.Count(c => c.Status.ToLower() == "draft"),
+                    countChapterRemove = n.Chapters.Count(c => c.Status.ToLower() == "reject"),
                     novelRating = n.Ratings
                         .Select(r => (double?)r.RatingPoint)
                         .Average() ?? 0
@@ -156,7 +156,7 @@ namespace SmartNovelBE.Controllers
             if (string.IsNullOrEmpty(roleId) || roleId == "4")
             {
                 var checkStatusNovel = await _context.Novels
-                    .AnyAsync(n => n.NovelId == id && n.Status != null && n.Status != "public");
+                    .AnyAsync(n => n.NovelId == id && n.Status != null && n.Status.ToLower() != "public");
 
                 if (checkStatusNovel)
                     return Unauthorized();
@@ -173,7 +173,7 @@ namespace SmartNovelBE.Controllers
                     AgeRating = n.AgeRating,
                     ImageNovelUrl = n.ImageNovelUrl,
                     ImageBanerNovelUrl = n.ImageBanerNovelUrl,
-                    Status = n.Status,
+                    Status = n.Status.ToLower(),
                     ViewCount = n.ViewCount,
                     LikeCount = n.LikeCount,
                     CreateTime = n.CreateTime,
@@ -205,12 +205,12 @@ namespace SmartNovelBE.Controllers
             var uid = User.FindFirst("uid")?.Value;
             if (uid == null)
                 return Unauthorized();
-            if (req.Status != "Public" && req.Status != "Draft")
+            if (req.Status.ToLower() != "public" && req.Status.ToLower() != "draft")
                 return BadRequest();
             var newNovel = new Novel();
             Guid idNovel = Guid.NewGuid();
             newNovel.NovelId = idNovel.ToString();
-            newNovel.Status = req.Status;
+            newNovel.Status = req.Status.ToLower();
             newNovel.Title = req.Title;
 
             string slug = req.Title.ToLowerInvariant();
@@ -296,7 +296,7 @@ namespace SmartNovelBE.Controllers
             var uid = User.FindFirst("uid")?.Value;
             if (uid == null)
                 return Unauthorized();
-            if (req.Status != "Public" && req.Status != "Draft")
+            if (req.Status.ToLower() != "public" && req.Status.ToLower() != "draft")
                 return BadRequest();
             // tránh mấy thằng tày lấy id truyện và gửi request update
             var modifyNovel = await _context.Novels.Include(x => x.Categories).FirstOrDefaultAsync(x => x.NovelId == novelID && x.Uid == uid);
@@ -305,7 +305,7 @@ namespace SmartNovelBE.Controllers
             modifyNovel.Title = req.Title;
             modifyNovel.Description = req.Description;
             modifyNovel.UpdateTime = DateTime.Now;
-            modifyNovel.Status = req.Status;
+            modifyNovel.Status = req.Status.ToLower();
             modifyNovel.AgeRating = req.AgeRating;
             modifyNovel.Categories.Clear();
             foreach (var categoryId in req.Genres)
@@ -389,10 +389,13 @@ namespace SmartNovelBE.Controllers
         public async Task<IActionResult> deleteNovel(string NovelID)
         {
             var uid = User.FindFirst("uid")?.Value;
+            var roleId = User.FindFirstValue(ClaimTypes.Role);
             if (uid == null)
                 return Unauthorized();
             // tránh mấy thằng tày lấy id truyện và gửi request update
             var deleteNovel = await _context.Novels.Include(x => x.Chapters).FirstOrDefaultAsync(x => x.NovelId == NovelID && x.Uid == uid);
+            if(roleId == "2" || roleId == "1")
+                deleteNovel = await _context.Novels.Include(x => x.Chapters).FirstOrDefaultAsync(x => x.NovelId == NovelID);
             if (deleteNovel == null)
                 return BadRequest(new { Msg = "Trứng mà đòi khôn hơn vịt" });
 
@@ -452,16 +455,16 @@ namespace SmartNovelBE.Controllers
                        AgeRating = n.AgeRating,
                        ImageNovelUrl = n.ImageNovelUrl,
                        ImageBanerNovelUrl = n.ImageBanerNovelUrl,
-                       Status = n.Status,
+                       Status = n.Status.ToLower(),
                        ViewCount = n.ViewCount,
                        LikeCount = n.LikeCount,
                        CreateTime = n.CreateTime,
                        UpdateTime = n.UpdateTime,
                        categories = n.Categories,
                        countChapter = n.Chapters.Count(),
-                       countChapterPublic = n.Chapters.Count(c => c.Status == "Public"),
-                       countChapterDraf = n.Chapters.Count(c => c.Status == "Draft"),
-                       countChapterRemove = n.Chapters.Count(c => c.Status == "Cancel"),
+                       countChapterPublic = n.Chapters.Count(c => c.Status.ToLower() == "public"),
+                       countChapterDraf = n.Chapters.Count(c => c.Status.ToLower() == "draft"),
+                       countChapterRemove = n.Chapters.Count(c => c.Status.ToLower() == "reject"),
                        novelRating = n.Ratings
                        .Select(r => (double?)r.RatingPoint)
                        .Average() ?? 0
@@ -487,7 +490,7 @@ namespace SmartNovelBE.Controllers
                        AgeRating = n.AgeRating,
                        ImageNovelUrl = n.ImageNovelUrl,
                        ImageBanerNovelUrl = n.ImageBanerNovelUrl,
-                       Status = n.Status,
+                       Status = n.Status.ToLower(),
                        ViewCount = n.ViewCount,
                        LikeCount = n.LikeCount,
                        CreateTime = n.CreateTime,
@@ -577,16 +580,16 @@ namespace SmartNovelBE.Controllers
                     AgeRating = n.AgeRating,
                     ImageNovelUrl = n.ImageNovelUrl,
                     ImageBanerNovelUrl = n.ImageBanerNovelUrl,
-                    Status = n.Status,
+                    Status = n.Status.ToLower(),
                     ViewCount = n.ViewCount,
                     LikeCount = n.LikeCount,
                     CreateTime = n.CreateTime,
                     UpdateTime = n.UpdateTime,
                     categories = n.Categories,
                     countChapter = n.Chapters.Count(),
-                    countChapterPublic = n.Chapters.Count(c => c.Status == "Public"),
-                    countChapterDraf = n.Chapters.Count(c => c.Status == "Draft"),
-                    countChapterRemove = n.Chapters.Count(c => c.Status == "Cancel"),
+                    countChapterPublic = n.Chapters.Count(c => c.Status.ToLower() == "Public"),
+                    countChapterDraf = n.Chapters.Count(c => c.Status.ToLower() == "Draft"),
+                    countChapterRemove = n.Chapters.Count(c => c.Status.ToLower() == "Cancel"),
                     novelRating = n.Ratings
                         .Select(r => (double?)r.RatingPoint)
                         .Average() ?? 0
@@ -604,6 +607,33 @@ namespace SmartNovelBE.Controllers
             };
 
             return Ok(res);
+        }
+        [HttpPut("rejectNovel/{novelId}")]
+        [Authorize(Roles = "1,2")]
+        public async Task<IActionResult> rejectNovel(string novelID)
+        {
+            var novel = await _context.Novels.FirstOrDefaultAsync(n => n.NovelId == novelID);
+            if (novel == null)
+                return BadRequest();
+            novel.Status = "Reject";
+            try
+            {
+                await _context.SaveChangesAsync();
+                return Ok();
+            }
+            catch
+                {
+                return BadRequest();
+            }
+
+        }
+        [HttpGet("getAllAuthor")]
+        [Authorize(Roles = "1, 2")]
+        public async Task<IActionResult> getAllAuthor()
+        {
+            var dcm = await _context.Users.Where(u => u.RoleId == "3").ToListAsync();
+
+            return Ok(dcm);
         }
     }
 }

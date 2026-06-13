@@ -543,5 +543,67 @@ namespace SmartNovelBE.Controllers
                 return Ok(novels.Count);
             }
         }
+        [HttpGet("getNovelForAdmin")]
+        [Authorize(Roles ="1,2")]
+        public async Task<IActionResult> getNovelForAdmin([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10000000,
+            [FromQuery] string keyword = "", [FromQuery] string type = "All", [FromQuery] string authorID = "")
+        {
+            var query = _context.Novels.AsQueryable();
+
+            if (!string.IsNullOrEmpty(keyword))
+            {
+                query = query.Where(n => n.Title.Contains(keyword));
+            }
+
+            if (!string.IsNullOrEmpty(type) && type.ToLower() != "all")
+            {
+                var lowerType = type.ToLower();
+                query = query.Where(n => n.Status.ToLower() == lowerType);
+            }
+
+            if (!string.IsNullOrEmpty(authorID))
+            {
+                query = query.Where(n => n.Uid == authorID);
+            }
+
+            var totalRecords = await query.CountAsync();
+            var novels = await query
+                .Select(n => new UserRespone.NovelResponseAuthor2
+                {
+                    NovelId = n.NovelId,
+                    Title = n.Title,
+                    Slug = n.Slug,
+                    Description = n.Description,
+                    AgeRating = n.AgeRating,
+                    ImageNovelUrl = n.ImageNovelUrl,
+                    ImageBanerNovelUrl = n.ImageBanerNovelUrl,
+                    Status = n.Status,
+                    ViewCount = n.ViewCount,
+                    LikeCount = n.LikeCount,
+                    CreateTime = n.CreateTime,
+                    UpdateTime = n.UpdateTime,
+                    categories = n.Categories,
+                    countChapter = n.Chapters.Count(),
+                    countChapterPublic = n.Chapters.Count(c => c.Status == "Public"),
+                    countChapterDraf = n.Chapters.Count(c => c.Status == "Draft"),
+                    countChapterRemove = n.Chapters.Count(c => c.Status == "Cancel"),
+                    novelRating = n.Ratings
+                        .Select(r => (double?)r.RatingPoint)
+                        .Average() ?? 0
+                })
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            var res = new PhanTrang<UserRespone.NovelResponseAuthor2>
+            {
+                datas = novels,
+                TotalRecords = totalRecords,
+                PageNumber = pageNumber,
+                PageSize = pageSize
+            };
+
+            return Ok(res);
+        }
     }
 }

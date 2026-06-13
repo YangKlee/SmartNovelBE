@@ -75,8 +75,28 @@ namespace SmartNovelBE.Models
         }
         public record CommentReponeReal
         {
-            public List<CommentResponse> comments { set; get; }
+            public List<CommentResponse> comments { set; get; } = new();
             public int totalComment { set; get; } = 0;
+        }
+        public record DashboardAuthorStatsNovelViewModel
+        {
+            public int? TotalNovels { get; set; }
+            public int? PublicNovels { get; set; }
+            public int? RemovedNovels { get; set; }
+            public int? DraftNovels { get; set; }
+
+            public int? TotalChapters { get; set; }
+            public int? PublicChapters { get; set; }
+            public int? RemovedChapters { get; set; }
+            public int? DraftChapters { get; set; }
+
+        }
+        public record DashboardAuthorStatsProflileViewModel
+        {
+            public int? countFollower { set; get; }
+            public int? totalView { set; get; }
+            //public int? creatorPoint { set; get; }
+
         }
     }
     

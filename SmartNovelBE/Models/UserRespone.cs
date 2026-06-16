@@ -122,6 +122,11 @@ namespace SmartNovelBE.Models
             public string? firstChapter { set; get; }
             public string? newestChapter { set; get; }
             public string? readingChapter { set; get; }
+            public bool isFollowNovel { set; get; } = false;
+            public bool isFollowAuthor { set; get; } = false;
+            public bool isBlockedAuthor { set; get; } = false;
+            public double averageRating { set; get; } = 0;
+            public double userRating { set; get; } = 0;
         }
         public record NovelHistoryViewModel
         {

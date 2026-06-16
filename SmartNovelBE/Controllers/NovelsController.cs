@@ -36,9 +36,12 @@ namespace SmartNovelBE.Controllers
             });
 
             // 2. Áp dụng các bộ lọc cơ bản
-            if (!string.IsNullOrEmpty(search))
+            if (!string.IsNullOrWhiteSpace(search))
             {
-                query = query.Where(q => q.Novel.Title.Contains(search));
+                var keyword = search.Trim().ToLower();
+
+                query = query.Where(q =>
+                    q.Novel.Title.ToLower().StartsWith(keyword));
             }
             if (!string.IsNullOrEmpty(status))
             {

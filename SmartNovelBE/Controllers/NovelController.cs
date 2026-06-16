@@ -28,6 +28,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.VisualBasic;
+using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.Blazor;
 using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.BlazorIdentity.Pages.Manage;
 using NuGet.Common;
 using Org.BouncyCastle.Ocsp;
@@ -71,12 +72,56 @@ namespace SmartNovelBE.Controllers
         [HttpGet("{novelID}")]
         public async Task<IActionResult> GetDetail(string novelID)
         {
+            var uid = User.FindFirst("uid")?.Value;
             var result = await _context.Novels.FirstOrDefaultAsync(n => n.NovelId == novelID);
 
             if (result == null)
                 return NotFound();
 
-            return Ok(result);
+            var chapter =  _context.Chapters.Where(c => c.NovelId == novelID).AsQueryable();
+            var firstChapter = await chapter.OrderBy(c => c.ChaperOrder).FirstOrDefaultAsync();
+            var lastChapter = await chapter.OrderByDescending(c => c.ChaperOrder).FirstOrDefaultAsync();
+            var lastReadChapter = await _context.HistoryReaders.Include(h => h.Chapter).Where(c => c.Chapter.NovelId == novelID && c.Uid == uid)
+                .OrderByDescending(c => c.Chapter.ChaperOrder).FirstOrDefaultAsync();
+
+            var isFollowNovel = false;
+            var isFollowAuthor = false;
+            var isBlockedAuthor = false;
+            if (!string.IsNullOrEmpty(uid))
+            {
+                isFollowNovel = await _context.Users
+                    .AnyAsync(u => u.Uid == uid && u.Novels.Any(n => n.NovelId == novelID));
+                isFollowAuthor = await _context.Users
+                    .AnyAsync(u => u.Uid == uid && u.UidsNavigation.Any(a => a.Uid == result.Uid));
+                isBlockedAuthor = await _context.Users
+                    .AnyAsync(u => u.Uid == uid && u.Authors.Any(a => a.Uid == result.Uid));
+            }
+
+            var ratings = await _context.Ratings.Where(r => r.NovelId == novelID).ToListAsync();
+            var averageRating = ratings.Any() ? ratings.Average(r => r.RatingPoint) : 0.0;
+            var userRating = 0.0;
+            if (!string.IsNullOrEmpty(uid))
+            {
+                var userRatingObj = ratings.FirstOrDefault(r => r.Uid == uid);
+                if (userRatingObj != null)
+                {
+                    userRating = userRatingObj.RatingPoint;
+                }
+            }
+
+            var res = new UserRespone.NovelDetail
+            {
+                novel = result,
+                firstChapter = firstChapter?.ChapterId,
+                newestChapter = lastChapter?.ChapterId,
+                readingChapter = lastReadChapter?.ChapterId,
+                isFollowNovel = isFollowNovel,
+                isFollowAuthor = isFollowAuthor,
+                isBlockedAuthor = isBlockedAuthor,
+                averageRating = averageRating,
+                userRating = userRating
+            };
+            return Ok(res);
         }
 
         [HttpGet("{novelId}/chapters")]
@@ -634,6 +679,39 @@ namespace SmartNovelBE.Controllers
             var dcm = await _context.Users.Where(u => u.RoleId == "3").ToListAsync();
 
             return Ok(dcm);
+        }
+        // Đánh giá truyện
+        [Authorize]
+        [HttpPost("rate")]
+        public IActionResult Rate([FromForm] string novelId, [FromForm] double rating)
+        {
+            var uid = User.FindFirst("uid")?.Value;
+
+            if (uid == null)
+                return Unauthorized();
+
+            var existing = _context.Ratings
+                .FirstOrDefault(x =>
+                    x.Uid == uid &&
+                    x.NovelId == novelId);
+
+            if (existing == null)
+            {
+                _context.Ratings.Add(new Rating
+                {
+                    Uid = uid,
+                    NovelId = novelId,
+                    RatingPoint = rating
+                });
+            }
+            else
+            {
+                existing.RatingPoint = rating;
+            }
+
+            _context.SaveChanges();
+
+            return Ok();
         }
     }
 }

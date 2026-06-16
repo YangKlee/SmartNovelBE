@@ -27,7 +27,7 @@ namespace SmartNovelBE.Services
                 return null;
             }
 
-            var userTmp = await _context.Users.FirstOrDefaultAsync(u => u.Username == req.username);
+            var userTmp = await _context.Users.FirstOrDefaultAsync(u => u.Username == req.username || u.Email == req.username);
             if(userTmp is null )
             {
                 return null;

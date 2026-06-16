@@ -158,43 +158,51 @@ namespace SmartNovelBE.Controllers
             }
         }
 
-        [Authorize(Roles = "3")]
+        [Authorize(Roles = "1,2,3")] // Cho phép cả Admin (1), Moderator (2) và Author (3) gọi API
         [HttpPost("getAllCommentAuthor")]
         public async Task<IActionResult> getAllCommentAuthor([FromBody] UserRequests.readerComment req)
         {
             var currentUserId = User.FindFirstValue("uid");
             var roleId = User.FindFirstValue(ClaimTypes.Role);
-
             if (string.IsNullOrEmpty(currentUserId))
                 return Unauthorized(new { Msg = "Vui lòng đăng nhập" });
 
-            // Lấy comment thuộc các truyện của tác giả này
+            // 1. Khởi tạo Query lấy thông tin liên quan
             var commentsQuery = _context.Comments
                 .Include(c => c.Chapter)
                     .ThenInclude(c => c.Novel)
                 .Include(c => c.UidNavigation)
                 .Include(c => c.InverseParentComment)
-                .Where(c => c.Chapter.Novel.Uid == currentUserId);
+                .AsQueryable();
 
-            // 1. Lọc theo truyện
+            // 2. Phân quyền dữ liệu hiển thị:
+            // - Nếu là Author  Chỉ lọc các bình luận nằm trong truyện do chính họ viết.
+            // - Nếu là Admin (1) hoặc Moderator (2): Bỏ qua bộ lọc và hiển thị tất cả bình luận hệ thống.
+            if (roleId == "3")
+            {
+                commentsQuery = commentsQuery.Where(c => c.Chapter.Novel.Uid == currentUserId);
+            }
+
+            // 3. Lọc theo truyện (nếu có)
             if (!string.IsNullOrEmpty(req.novelId))
             {
                 commentsQuery = commentsQuery.Where(c => c.Chapter.Novel.NovelId == req.novelId);
             }
 
-            // 2. Lọc theo chương
+            // 4. Lọc theo chương (nếu có)
             if (!string.IsNullOrEmpty(req.chapterId))
             {
                 commentsQuery = commentsQuery.Where(c => c.ChapterId == req.chapterId);
             }
 
-            // 3. Lọc theo keyword (tìm trong nội dung)
+            // 5. Tìm kiếm nâng cao: Tìm theo nội dung comment HOẶC Tên hiển thị (DisplayName) của người viết
             if (!string.IsNullOrEmpty(req.keyworld))
             {
-                commentsQuery = commentsQuery.Where(c => c.Content.Contains(req.keyworld));
+                commentsQuery = commentsQuery.Where(c => c.Content.Contains(req.keyworld) || 
+                                                           c.UidNavigation.DisplayName.Contains(req.keyworld));
             }
 
-            // 4. Lọc theo comment cha
+            // 6. Lọc theo comment cha
             if (string.IsNullOrEmpty(req.parentCommentID))
             {
                 commentsQuery = commentsQuery.Where(c => c.ParentCommentId == null);
@@ -204,12 +212,11 @@ namespace SmartNovelBE.Controllers
                 commentsQuery = commentsQuery.Where(c => c.ParentCommentId == req.parentCommentID);
             }
 
-            // Phân trang
+            // Cấu hình Phân trang
             int limit = 5;
             int page = 1;
             int.TryParse(req.pageLimit, out limit);
             int.TryParse(req.currentPage, out page);
-
             if (limit <= 0) limit = 5;
             if (page <= 0) page = 1;
 

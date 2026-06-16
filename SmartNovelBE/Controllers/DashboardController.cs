@@ -129,5 +129,67 @@ namespace SmartNovelBE.Controllers
             return Ok(model);
         }
 
+        [Authorize(Roles = "1,2")]
+        [HttpGet("getUserStats")]
+        public async Task<IActionResult> GetUserStats()
+        {
+            var totalUsers = await _context.Users.CountAsync();
+            var adminCount = await _context.Users.CountAsync(u => u.RoleId == "1");
+            var moderatorCount = await _context.Users.CountAsync(u => u.RoleId == "2");
+            var authorCount = await _context.Users.CountAsync(u => u.RoleId == "3");
+            var readerCount = await _context.Users.CountAsync(u => u.RoleId == "4");
+
+            var activeCount = await _context.Users.CountAsync(u => u.Status != null && u.Status.ToLower() == "active");
+            var blockedCount = totalUsers - activeCount;
+
+            var stats = new UserRespone.DashboardUserStatsInfo
+            {
+                TotalUsers = totalUsers,
+                AdminCount = adminCount,
+                ModeratorCount = moderatorCount,
+                AuthorCount = authorCount,
+                ReaderCount = readerCount,
+                ActiveCount = activeCount,
+                BlockedCount = blockedCount
+            };
+
+            return Ok(stats);
+        }
+
+        [Authorize(Roles = "1,2")]
+        [HttpGet("getActivityStats")]
+        public async Task<IActionResult> GetActivityStats()
+        {
+            var startDate = DateTime.Today.AddDays(-6);
+
+            var novelStats = await _context.Novels
+                .Where(n => n.CreateTime.HasValue && n.CreateTime.Value >= startDate)
+                .GroupBy(n => n.CreateTime!.Value.Date)
+                .Select(g => new { Date = g.Key, Count = g.Count() })
+                .ToListAsync();
+
+            var chapterStats = await _context.Chapters
+                .Where(c => c.CreateTime.HasValue && c.CreateTime.Value >= startDate)
+                .GroupBy(c => c.CreateTime!.Value.Date)
+                .Select(g => new { Date = g.Key, Count = g.Count() })
+                .ToListAsync();
+
+            var novelDict = novelStats.ToDictionary(x => x.Date, x => x.Count);
+            var chapterDict = chapterStats.ToDictionary(x => x.Date, x => x.Count);
+
+            var today = DateTime.Today;
+            var result = Enumerable.Range(0, 7)
+                .Select(i => today.AddDays(-i))
+                .OrderBy(d => d)
+                .Select(date => new UserRespone.DashboardActivityStatsInfo
+                {
+                    Date = date.ToString("dd/MM"),
+                    NovelsAdded = novelDict.TryGetValue(date, out var nc) ? nc : 0,
+                    ChaptersAdded = chapterDict.TryGetValue(date, out var cc) ? cc : 0
+                })
+                .ToList();
+
+            return Ok(result);
+        }
     }
 }

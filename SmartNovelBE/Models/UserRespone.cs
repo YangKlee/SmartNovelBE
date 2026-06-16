@@ -98,6 +98,23 @@ namespace SmartNovelBE.Models
             //public int? creatorPoint { set; get; }
 
         }
+
+        public record DashboardUserStatsInfo
+        {
+            public int TotalUsers { get; set; }
+            public int AdminCount { get; set; }
+            public int ModeratorCount { get; set; }
+            public int AuthorCount { get; set; }
+            public int ReaderCount { get; set; }
+            public int ActiveCount { get; set; }
+            public int BlockedCount { get; set; }
+        }
+
+        public record DashboardActivityStatsInfo
+        {
+            public string Date { get; set; } = string.Empty;
+            public int ChaptersAdded { get; set; }
+            public int NovelsAdded { get; set; }
+        }
     }
-    
 }

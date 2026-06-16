@@ -202,6 +202,9 @@ namespace SmartNovelBE.Controllers
             var user = await _context.Users.FirstOrDefaultAsync(x => x.Uid == uid);
             return Ok(user);
         }
+
+        
+
         [Authorize]
         [HttpGet("checkLogin")]
         public async Task<IActionResult> getLogin()
@@ -379,5 +382,30 @@ namespace SmartNovelBE.Controllers
 
             return Redirect($"http://localhost:4200/auth/login-callback?token={jwtToken}");
         }
+
+        [Authorize]
+        [HttpPut("ReadingPreferences")]
+        public async Task<IActionResult> UpdateReadingPreferences([FromBody] UserRequests.UpdateReadingPreferences req)
+        {
+            var uid = User.FindFirst("uid")?.Value;
+            if (uid == null)
+            {
+                return Unauthorized();
+            }
+            var user = await _context.Users.FirstOrDefaultAsync(x => x.Uid == uid);
+            if (user == null)
+            {
+                return NotFound();
+            }
+
+            user.ReadingTheme = req.theme;
+            user.ReadingFontSize = req.fontSize;
+            user.ReadingFontFamily = req.fontFamily;
+
+            await _context.SaveChangesAsync();
+            return Ok(new { content = "Cập nhật cấu hình đọc truyện thành công" });
+        }
     }
+
+
 }

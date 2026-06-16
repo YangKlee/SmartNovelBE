@@ -10,6 +10,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Threading.Tasks;
 
 namespace SmartNovelBE.Controllers
@@ -387,6 +388,32 @@ namespace SmartNovelBE.Controllers
                 return BadRequest();
             }
 
+        }
+        [HttpGet("ghiLuotXem/{chapterID}")]
+        public async Task<IActionResult> ghiLuotXem(string chapterID)
+        {
+            var uid = User.FindFirst("uid")?.Value;
+            var chapter = await _context.Chapters.FirstOrDefaultAsync(c => c.ChapterId == chapterID);
+            string novelId = chapter.NovelId;
+            var history = new HistoryReader
+            {
+                ChapterId = chapter.ChapterId,
+                NovelId = novelId,
+                Uid = uid,
+                TimeReader = DateTime.Now,
+                ReadSessionId = Guid.NewGuid().ToString(),
+            };
+            _context.HistoryReaders.Add(history);
+            var novelUpdate = await _context.Novels.FirstOrDefaultAsync(n => n.NovelId == novelId);
+            if (novelUpdate != null)
+            {
+                novelUpdate.ViewCount += 1;
+            }
+            if (uid != null)
+            {
+                await _context.SaveChangesAsync();
+            }
+            return Ok();
         }
     }
 

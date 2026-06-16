@@ -7,6 +7,7 @@ using Org.BouncyCastle.Ocsp;
 using SmartNovelBE.Models;
 using SmartNovelBE.Services;
 using System.Security.Claims;
+using static SmartNovelBE.Models.UserRespone;
 namespace SmartNovelBE.Controllers
 {
     [Route("api/[controller]")]
@@ -197,6 +198,36 @@ namespace SmartNovelBE.Controllers
             {
                 return BadRequest(new { Msg = "Không thể chuyển tác giả hoặc bạn đã là tác giả!" });
             }
+        }
+        [HttpGet("getHistoryView")]
+        [Authorize]
+        public async Task<IActionResult> HistoryViewUser()
+        {
+            var uid = User.FindFirst("uid")?.Value;
+
+            if (string.IsNullOrEmpty(uid))
+            {
+                return Unauthorized();
+            }
+
+            var history = await _context.HistoryReaders
+                    .Include(h => h.Novel)
+                    .Include(h => h.Chapter)
+                    .Where(h => h.Uid == uid)
+                    .OrderByDescending(h => h.TimeReader)
+                    .ToListAsync();
+
+            var model = history.Select(h => new UserRespone.HistoryViewModel
+            {
+                history = new UserRespone.NovelHistoryViewModel
+                {
+                    chapterView = h.Chapter,
+                    novelInfo = h.Novel
+                },
+                timeView = h.TimeReader
+            }).ToList();
+
+            return Ok(model);
         }
     }
 }

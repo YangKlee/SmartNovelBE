@@ -116,5 +116,22 @@ namespace SmartNovelBE.Models
             public int ChaptersAdded { get; set; }
             public int NovelsAdded { get; set; }
         }
+        public record NovelDetail
+        {
+            public Novel novel { set; get; }
+            public string? firstChapter { set; get; }
+            public string? newestChapter { set; get; }
+            public string? readingChapter { set; get; }
+        }
+        public record NovelHistoryViewModel
+        {
+            public Chapter chapterView { set; get; }
+            public Novel novelInfo { set; get; }
+        }
+        public record HistoryViewModel
+        {
+            public NovelHistoryViewModel history { set; get; }
+            public DateTime? timeView { set; get; }
+        }
     }
 }

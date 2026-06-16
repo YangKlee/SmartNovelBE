@@ -71,12 +71,25 @@ namespace SmartNovelBE.Controllers
         [HttpGet("{novelID}")]
         public async Task<IActionResult> GetDetail(string novelID)
         {
+            var uid = User.FindFirst("uid")?.Value;
             var result = await _context.Novels.FirstOrDefaultAsync(n => n.NovelId == novelID);
 
             if (result == null)
                 return NotFound();
 
-            return Ok(result);
+            var chapter =  _context.Chapters.Where(c => c.NovelId == novelID).AsQueryable();
+            var firstChapter = await chapter.OrderBy(c => c.ChaperOrder).FirstOrDefaultAsync();
+            var lastChapter = await chapter.OrderByDescending(c => c.ChaperOrder).FirstOrDefaultAsync();
+            var lastReadChapter = await _context.HistoryReaders.Include(h => h.Chapter).Where(c => c.Chapter.NovelId == novelID && c.Uid == uid)
+                .OrderByDescending(c => c.Chapter.ChaperOrder).FirstOrDefaultAsync();
+            var res = new UserRespone.NovelDetail
+            {
+                novel = result,
+                firstChapter = firstChapter?.ChapterId,
+                newestChapter = lastChapter?.ChapterId,
+                readingChapter = lastReadChapter?.ChapterId,
+            };
+            return Ok(res);
         }
 
         [HttpGet("{novelId}/chapters")]

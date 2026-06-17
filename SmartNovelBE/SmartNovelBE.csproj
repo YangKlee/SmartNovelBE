@@ -29,4 +29,12 @@
     <PackageReference Include="Swashbuckle.AspNetCore" Version="10.2.1" />
   </ItemGroup>
 
+  <ItemGroup>
+    <EditorConfigFiles Remove="D:\angular\SmartNovelBE\SmartNovelBE\.editorconfig" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="D:\angular\SmartNovelBE\SmartNovelBE\.editorconfig" />
+  </ItemGroup>
+
 </Project>

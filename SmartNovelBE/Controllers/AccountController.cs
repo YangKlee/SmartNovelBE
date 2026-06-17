@@ -19,14 +19,14 @@ namespace SmartNovelBE.Controllers
         private readonly SmartTruyenDbContext _context;
         private readonly MailServices _mailServices;
         private readonly IMemoryCache _cache;
-        private readonly FileStorageServices _fileServicesUpload;
-        public AccountController(JwtServices jwtServices, SmartTruyenDbContext context, MailServices mailServices, IMemoryCache cache, FileStorageServices fileService)
+        private readonly IUserRelationService _userRelationService;
+        public AccountController(JwtServices jwtServices, SmartTruyenDbContext context, MailServices mailServices, IMemoryCache cache, IUserRelationService userRelationService)
         {
             _jwtServices = jwtServices;
             _context = context;
             _mailServices = mailServices;
             _cache = cache;
-            _fileServicesUpload = fileService;
+            _userRelationService = userRelationService;
         }
         [HttpGet("accountInfo")]
         public async Task<ActionResult<User>> accountInfo()
@@ -113,6 +113,30 @@ namespace SmartNovelBE.Controllers
                 return Ok();
             }
         }
+
+        [HttpGet("profile/{uid}")]
+        public async Task<IActionResult> GetProfile(string uid)
+        {
+            var currentUid = User.FindFirst("uid")?.Value;
+
+            var result = await _userRelationService.GetProfileAsync(currentUid, uid);
+
+            if (result == null)
+                return NotFound();
+
+            return Ok(result);
+        }
+        [HttpGet("profile")]
+        public async Task<IActionResult> GetProfile()
+        {
+            var currentUid = User.FindFirst("uid")?.Value;
+
+            var result = await _userRelationService.GetProfileAsync(currentUid, currentUid);
+
+            if (result == null)
+                return NotFound();
+
+            return Ok(result);
         [Authorize]
         [HttpPost("changeAvatar")]
         public async Task<IActionResult> changeProfileImage([FromForm] UserRequests.uploadAvatar req)

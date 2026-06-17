@@ -1,0 +1,37 @@
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace SmartNovelBE.DTOs.AdminUser
+{
+    public class CreateUserDto
+    {
+        [Required(ErrorMessage = "Vui lòng nhập họ và tên.")]
+        [MaxLength(100, ErrorMessage = "Họ tên không được vượt quá 100 ký tự.")]
+        public string DisplayName { get; set; }
+
+        [Required(ErrorMessage = "Vui lòng nhập tên đăng nhập.")]
+        [RegularExpression(@"^[a-zA-Z0-9]+$", ErrorMessage = "Tên đăng nhập không được chứa khoảng trắng hoặc ký tự đặc biệt.")]
+        [MaxLength(50)]
+        public string Username { get; set; }
+
+        [Required(ErrorMessage = "Vui lòng nhập địa chỉ Email.")]
+        [EmailAddress(ErrorMessage = "Email không hợp lệ.")]
+        public string Email { get; set; }
+
+        public string? Phone { get; set; }
+
+        [Required(ErrorMessage = "Vui lòng nhập mật khẩu.")]
+        [MinLength(6, ErrorMessage = "Mật khẩu phải có ít nhất 6 ký tự.")]
+        public string Password { get; set; }
+
+
+        [Required(ErrorMessage = "Vui lòng chọn quyền cho người dùng.")]
+        public string RoleId { get; set; }
+
+        [Required(ErrorMessage = "Vui lòng chọn trạng thái cho người dùng.")]
+        public string Status { get; set; }
+
+        [Required(ErrorMessage = "Vui lòng nhập điểm ban đầu.")]
+        [Range(0, 1000000, ErrorMessage = "Điểm phải nằm trong khoảng từ 0 đến 1,000,000.")]
+        public int? CreatorPoint { get; set; }
+    }
+}

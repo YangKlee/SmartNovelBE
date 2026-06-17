@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace SmartNovelBE.Models;
@@ -32,6 +32,12 @@ public partial class User
     public string? TimeOutType { get; set; }
 
     public int? CreatorPoint { get; set; }
+
+    public string? ReadingTheme { get; set; } = "light";
+
+    public int? ReadingFontSize { get; set; } = 19;
+
+    public string? ReadingFontFamily { get; set; } = "Roboto";
 
     public virtual ICollection<Comment> Comments { get; set; } = new List<Comment>();
 

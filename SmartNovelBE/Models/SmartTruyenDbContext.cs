@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 
@@ -476,6 +476,16 @@ public partial class SmartTruyenDbContext : DbContext
                 .IsUnicode(false);
             entity.Property(e => e.BannedTime).HasColumnType("datetime");
             entity.Property(e => e.CreatorPoint).HasDefaultValue(0);
+            entity.Property(e => e.ReadingTheme)
+                .HasMaxLength(20)
+                .IsUnicode(false)
+                .HasDefaultValueSql("('light')");
+            entity.Property(e => e.ReadingFontSize)
+                .HasDefaultValue(19);
+            entity.Property(e => e.ReadingFontFamily)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasDefaultValueSql("('Roboto')");
             entity.Property(e => e.DisplayName).HasMaxLength(100);
             entity.Property(e => e.Email)
                 .HasMaxLength(255)

@@ -5,7 +5,7 @@ namespace SSmartNovelBE.Services.Interfaces
 {
     public interface INovelService
     {
-        Task<NovelDetailDto?> GetBySlugAsync(string slug);
+        Task<NovelDetailDto?> GetByNovelIdAsync(string novelId);
         Task<List<ChapterListDto>>GetChaptersByNovelIdAsync(string novelId);
 
         

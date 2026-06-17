@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -10,6 +10,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Threading.Tasks;
 
 namespace SmartNovelBE.Controllers
@@ -60,7 +61,7 @@ namespace SmartNovelBE.Controllers
             {
                 // Kiểm tra xem chapter có tồn tại và trạng thái không phải public hay không
                 var isPrivateChapter = await _context.Chapters
-                    .AnyAsync(n => n.ChapterId == chapterID && n.Status != "public");
+                    .AnyAsync(n => n.ChapterId == chapterID && n.Status.ToLower() != "public");
 
                 if (isPrivateChapter)
                 {
@@ -183,7 +184,7 @@ namespace SmartNovelBE.Controllers
             newChapter.ChapterId = idChapter;
             newChapter.SummaryChapter = req.decrip;
             newChapter.AllowComment = req.allowComment;
-            newChapter.Status = req.status;
+            newChapter.Status = req.status?.ToLower();
             newChapter.UpdateTime = DateTime.Now;
             newChapter.CreateTime = DateTime.Now;
             newChapter.NovelId = novelID;
@@ -245,7 +246,7 @@ namespace SmartNovelBE.Controllers
             chapterModify.ChaperOrder = req.oder;
             chapterModify.AllowComment = req.allowComment;
             chapterModify.SummaryChapter = req.decrip;
-            chapterModify.Status = req.status;
+            chapterModify.Status = req.status?.ToLower();
             chapterModify.UpdateTime = DateTime.Now;
             string publicLink = "https://pub-20056e4912f440f08b3d40eea545f95f.r2.dev/smart-novel/novel-file/";
             try
@@ -273,15 +274,20 @@ namespace SmartNovelBE.Controllers
         }
         [Authorize]
         [HttpDelete("DeleteChapter/{chapterId}")]
-        public async Task<IActionResult> chapterModify(string chapterId)
+        public async Task<IActionResult> deleteChapter(string chapterId)
         {
             var uid = User.FindFirst("uid")?.Value;
+            var roleId = User.FindFirstValue(ClaimTypes.Role);
             var chapterDelete = await _context.Chapters.FirstOrDefaultAsync(c => c.ChapterId == chapterId);
             if (chapterDelete == null)
                 return BadRequest(new { Msg = "Không tìm thấy chapter" });
-            var checkAuthor = await _context.Novels.AnyAsync(n => n.Uid == uid && n.NovelId == chapterDelete.NovelId);
-            if (!checkAuthor)
-                return Unauthorized();
+
+            if(roleId == "3" || roleId == "4")
+            {
+                var checkAuthor = await _context.Novels.AnyAsync(n => n.Uid == uid && n.NovelId == chapterDelete.NovelId);
+                if (!checkAuthor)
+                    return Unauthorized();
+            }
             string publicLink = "https://pub-20056e4912f440f08b3d40eea545f95f.r2.dev/smart-novel/novel-file/";
 
             try
@@ -324,7 +330,7 @@ namespace SmartNovelBE.Controllers
             else
             {
                 var type = req.status.ToLower();
-                var chapters = await _context.Chapters.Where(c => c.NovelId == req.novelID && c.Status == req.status).ToListAsync();
+                var chapters = await _context.Chapters.Where(c => c.NovelId == req.novelID && c.Status.ToLower() == type).ToListAsync();
                 if (req.keyworld != null)
                 {
                     var res = chapters.Where(n => n.ChapterTitle.Contains(req.keyworld))
@@ -355,7 +361,7 @@ namespace SmartNovelBE.Controllers
             else
             {
                 var type = req.status.ToLower();
-                var chapters = await _context.Chapters.Where(c => c.NovelId == req.novelID).ToListAsync();
+                var chapters = await _context.Chapters.Where(c => c.NovelId == req.novelID && c.Status.ToLower() == type).ToListAsync();
                 if (req.keyworld != null)
                 {
                     var res = chapters.Where(n => n.ChapterTitle.Contains(req.keyworld)).ToList();
@@ -363,6 +369,51 @@ namespace SmartNovelBE.Controllers
                 }
                 return Ok(chapters.Count);
             }
+        }
+        [HttpPut("rejectChapter/{chapterID}")]
+        [Authorize(Roles = "1,2")]
+        public async Task<IActionResult> rejectChapter(string chapterID)
+        {
+            var novel = await _context.Chapters.FirstOrDefaultAsync(n => n.ChapterId == chapterID);
+            if (novel == null)
+                return BadRequest();
+            novel.Status = "reject";
+            try
+            {
+                await _context.SaveChangesAsync();
+                return Ok();
+            }
+            catch
+            {
+                return BadRequest();
+            }
+
+        }
+        [HttpGet("ghiLuotXem/{chapterID}")]
+        public async Task<IActionResult> ghiLuotXem(string chapterID)
+        {
+            var uid = User.FindFirst("uid")?.Value;
+            var chapter = await _context.Chapters.FirstOrDefaultAsync(c => c.ChapterId == chapterID);
+            string novelId = chapter.NovelId;
+            var history = new HistoryReader
+            {
+                ChapterId = chapter.ChapterId,
+                NovelId = novelId,
+                Uid = uid,
+                TimeReader = DateTime.Now,
+                ReadSessionId = Guid.NewGuid().ToString(),
+            };
+            _context.HistoryReaders.Add(history);
+            var novelUpdate = await _context.Novels.FirstOrDefaultAsync(n => n.NovelId == novelId);
+            if (novelUpdate != null)
+            {
+                novelUpdate.ViewCount += 1;
+            }
+            if (uid != null)
+            {
+                await _context.SaveChangesAsync();
+            }
+            return Ok();
         }
     }
 

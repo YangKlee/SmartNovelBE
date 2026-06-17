@@ -27,7 +27,7 @@ namespace SmartNovelBE.Services
                 return null;
             }
 
-            var userTmp = await _context.Users.FirstOrDefaultAsync(u => u.Username == req.username);
+            var userTmp = await _context.Users.FirstOrDefaultAsync(u => u.Username == req.username || u.Email == req.username);
             if(userTmp is null )
             {
                 return null;
@@ -75,6 +75,33 @@ namespace SmartNovelBE.Services
                 roleID = userTmp.RoleId,
                 expiresIn = (int)tokenExpiryTimeStamp.Subtract(DateTime.UtcNow).TotalSeconds
             };
+        }
+
+        public string GenerateToken(User userTmp)
+        {
+            var issuer = _config["JwtConfig:Issuer"];
+            var audience = _config["JwtConfig:Audience"];
+            var key = _config["JwtConfig:Key"];
+            var tokenValidityMins = _config.GetValue<int>("JwtConfig:TokenValidityMins");
+            var tokenExpiryTimeStamp = DateTime.UtcNow.AddMinutes(tokenValidityMins);
+
+            var tokenDescriptor = new SecurityTokenDescriptor
+            {
+                Subject = new ClaimsIdentity(new[]
+                {
+                        new Claim(JwtRegisteredClaimNames.Name, userTmp.Username),
+                        new Claim("uid", userTmp.Uid.ToString()),
+                        new Claim(ClaimTypes.Role, userTmp.RoleId.ToString())
+                }),
+                Expires = tokenExpiryTimeStamp,
+                Issuer = issuer,
+                Audience = audience,
+                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key)),
+                SecurityAlgorithms.HmacSha512Signature),
+            };
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var securityToken = tokenHandler.CreateToken(tokenDescriptor);
+            return tokenHandler.WriteToken(securityToken);
         }
     }
 }

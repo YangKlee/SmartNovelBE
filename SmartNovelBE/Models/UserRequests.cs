@@ -8,6 +8,7 @@ namespace SmartNovelBE.Models
         public record MailToken(string email, bool active);
         public record ChangeInfoUser(string displayName,  string phone, string? birthday);
         public record changePassword(string oldPassword, string newPassword);
+        public record UpdateReadingPreferences(string theme, int fontSize, string fontFamily);
         public record CreateNovelRequest
         {
             public string Title { get; init; } = string.Empty;
@@ -36,6 +37,11 @@ namespace SmartNovelBE.Models
 
         public record searchNovel(string status, string? keyworld);
         public record searchChapter(string novelID,string status, string? keyworld);
+
+        public record uploadAvatar(IFormFile? NewImage);
+        public record addComment(string novelId, string chapterId, string content, string? parentComment = "");
+
+        public record readerComment(string novelId, string chapterId, string keyworld, string? pageLimit = "5", string? currentPage = "1" , string? parentCommentID = null);
 
     }
 }

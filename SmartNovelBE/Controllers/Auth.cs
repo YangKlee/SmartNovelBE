@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -7,6 +7,9 @@ using Microsoft.VisualBasic;
 using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.BlazorIdentity.Pages.Manage;
 using NuGet.Common;
 using Org.BouncyCastle.Ocsp;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using System.Security.Claims;
 using SmartNovelBE.Models;
 using SmartNovelBE.Services;
 using static Org.BouncyCastle.Crypto.Engines.SM2Engine;
@@ -199,6 +202,9 @@ namespace SmartNovelBE.Controllers
             var user = await _context.Users.FirstOrDefaultAsync(x => x.Uid == uid);
             return Ok(user);
         }
+
+        
+
         [Authorize]
         [HttpGet("checkLogin")]
         public async Task<IActionResult> getLogin()
@@ -279,5 +285,127 @@ namespace SmartNovelBE.Controllers
 
 
         }
+
+        [AllowAnonymous]
+        [HttpGet("LoginGoogle")]
+        public IActionResult LoginGoogle()
+        {
+            var properties = new AuthenticationProperties { RedirectUri = Url.Action("GoogleResponse") };
+            return Challenge(properties, Microsoft.AspNetCore.Authentication.Google.GoogleDefaults.AuthenticationScheme);
+        }
+
+        [AllowAnonymous]
+        [HttpGet("GoogleResponse")]
+        public async Task<IActionResult> GoogleResponse()
+        {
+            var result = await HttpContext.AuthenticateAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+            if (!result.Succeeded) return Redirect("http://localhost:4200/auth/login?error=true");
+
+            var claims = result.Principal.Identities.FirstOrDefault()?.Claims;
+            if (claims == null) return Redirect("http://localhost:4200/auth/login?error=true");
+
+            var email = claims.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value;
+            var name = claims.FirstOrDefault(c => c.Type == ClaimTypes.Name)?.Value ?? email;
+
+            if (string.IsNullOrEmpty(email)) return Redirect("http://localhost:4200/auth/login?error=true");
+
+            var userTmp = await _context.Users.FirstOrDefaultAsync(e => e.Email == email);
+            if (userTmp == null)
+            {
+                userTmp = new User
+                {
+                    Uid = Guid.NewGuid().ToString(),
+                    Username = email,
+                    Email = email,
+                    DisplayName = name,
+                    Status = "Active",
+                    RoleId = "4", // Default role
+                    Password = new PasswordHasher<object>().HashPassword(null, Guid.NewGuid().ToString())
+                };
+                _context.Users.Add(userTmp);
+                await _context.SaveChangesAsync();
+            }
+
+            var jwtToken = _jwtServices.GenerateToken(userTmp);
+
+            // Chuyển hướng về trang Frontend Angular kèm Token
+            return Redirect($"http://localhost:4200/auth/login-callback?token={jwtToken}");
+        }
+
+        [AllowAnonymous]
+        [HttpGet("LoginFacebook")]
+        public IActionResult LoginFacebook()
+        {
+            var properties = new AuthenticationProperties { RedirectUri = Url.Action("FacebookResponse") };
+            return Challenge(properties, Microsoft.AspNetCore.Authentication.Facebook.FacebookDefaults.AuthenticationScheme);
+        }
+
+        [AllowAnonymous]
+        [HttpGet("FacebookResponse")]
+        public async Task<IActionResult> FacebookResponse()
+        {
+            var result = await HttpContext.AuthenticateAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+            if (!result.Succeeded) return Redirect("http://localhost:4200/auth/login?error=true");
+
+            var claims = result.Principal.Identities.FirstOrDefault()?.Claims;
+            if (claims == null) return Redirect("http://localhost:4200/auth/login?error=true");
+
+            var nameIdentifier = claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
+            var email = claims.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value;
+            var name = claims.FirstOrDefault(c => c.Type == ClaimTypes.Name)?.Value ?? "Người dùng Facebook";
+
+            if (string.IsNullOrEmpty(email))
+            {
+                if (string.IsNullOrEmpty(nameIdentifier)) return Redirect("http://localhost:4200/auth/login?error=true");
+                email = $"{nameIdentifier}@facebook.user";
+            }
+
+            var userTmp = await _context.Users.FirstOrDefaultAsync(e => e.Email == email || e.Username == email);
+            
+            if (userTmp == null)
+            {
+                userTmp = new User
+                {
+                    Uid = Guid.NewGuid().ToString(),
+                    Username = email,
+                    Email = email,
+                    DisplayName = name,
+                    Status = "Active",
+                    RoleId = "4", // Default role
+                    Password = new PasswordHasher<object>().HashPassword(null, Guid.NewGuid().ToString())
+                };
+                _context.Users.Add(userTmp);
+                await _context.SaveChangesAsync();
+            }
+
+            var jwtToken = _jwtServices.GenerateToken(userTmp);
+
+            return Redirect($"http://localhost:4200/auth/login-callback?token={jwtToken}");
+        }
+
+        [Authorize]
+        [HttpPut("ReadingPreferences")]
+        public async Task<IActionResult> UpdateReadingPreferences([FromBody] UserRequests.UpdateReadingPreferences req)
+        {
+            var uid = User.FindFirst("uid")?.Value;
+            if (uid == null)
+            {
+                return Unauthorized();
+            }
+            var user = await _context.Users.FirstOrDefaultAsync(x => x.Uid == uid);
+            if (user == null)
+            {
+                return NotFound();
+            }
+
+            user.ReadingTheme = req.theme;
+            user.ReadingFontSize = req.fontSize;
+            user.ReadingFontFamily = req.fontFamily;
+
+            await _context.SaveChangesAsync();
+            return Ok(new { content = "Cập nhật cấu hình đọc truyện thành công" });
+        }
     }
+
+
 }

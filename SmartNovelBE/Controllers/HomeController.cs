@@ -1,7 +1,8 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Authorization;
-using System.Security.Claims;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using NuGet.Configuration;
 using SmartNovelBE.Services;
+using System.Security.Claims;
 
 namespace SmartNovelBE.Controllers
 {
@@ -16,13 +17,6 @@ namespace SmartNovelBE.Controllers
             _homeService = homeService;
         }
 
-        
-        private string? GetCurrentUserId()
-        {
-            return User.FindFirstValue(ClaimTypes.NameIdentifier);
-        }
-
-        // 1 GET api/HomeApi/featured
         [HttpGet("featured")]
         [AllowAnonymous]
         public async Task<IActionResult> GetFeaturedNovel()
@@ -31,27 +25,24 @@ namespace SmartNovelBE.Controllers
             return Ok(data);
         }
 
-        // 2 GET api/HomeApi/hot
         [HttpGet("hot")]
-        [AllowAnonymous] 
+        [AllowAnonymous]
         public async Task<IActionResult> GetHotNovels()
         {
-            string? userId = GetCurrentUserId();
+            string? userId = User.FindFirst("uid")?.Value;
             var data = await _homeService.GetHotNovelsAsync(userId);
             return Ok(data);
         }
 
-        //3 GET api/HomeApi/recommended
         [HttpGet("recommended")]
         [AllowAnonymous]
         public async Task<IActionResult> GetRecommendedNovels()
         {
-            string? userId = GetCurrentUserId();
+            string? userId = User.FindFirst("uid")?.Value;
             var data = await _homeService.GetRecommendedNovelsAsync(userId);
             return Ok(data);
         }
 
-        // GET api/HomeApi/admin-recommend
         [HttpGet("admin-recommend")]
         [AllowAnonymous]
         public async Task<IActionResult> GetAdminRecommend()
@@ -61,17 +52,15 @@ namespace SmartNovelBE.Controllers
             return Ok(data);
         }
 
-        // 5 GET api/HomeApi/sidebar-new-update
         [HttpGet("sidebar-new-update")]
         [AllowAnonymous]
         public async Task<IActionResult> GetSidebarNewUpdate()
         {
-            string? userId = GetCurrentUserId();
-             var data = await _homeService.GetSidebarNewUpdateAsync(userId);
+            string? userId = User.FindFirst("uid")?.Value;
+            var data = await _homeService.GetSidebarNewUpdateAsync(userId);
             return Ok(data);
         }
 
-        // 6.GET api/HomeApi/top-authors
         [HttpGet("top-authors")]
         [AllowAnonymous]
         public async Task<IActionResult> GetTopAuthors()
@@ -80,5 +69,18 @@ namespace SmartNovelBE.Controllers
 
             return Ok(data);
         }
+
+        [HttpGet("followedNovel")]
+        [AllowAnonymous]
+        public async Task<IActionResult> GetFollowedNovel()
+        {
+            string? userId = User.FindFirst("uid")?.Value;
+            var data = await _homeService.GetNovelFlowingAsync(userId);
+
+            return Ok(data);
+
+
+        }
+
     }
 }

@@ -1,25 +1,24 @@
-﻿namespace SmartNovelBE.Models
+﻿namespace SmartNovelBE.DTOs.Novel;
+
+public class FollowingNovelDto
 {
-    public class FollowingNovelDto
-    {
-        public string NovelId { get; set; } = null!;
+    public string NovelId { get; set; } = null!;
 
-        public string Title { get; set; } = null!;
+    public string Title { get; set; } = null!;
 
-        public string? Slug { get; set; }
+    public string? Slug { get; set; }
 
-        public string? ImageNovelUrl { get; set; }
+    public string? ImageNovelUrl { get; set; }
 
-        public string AuthorName { get; set; } = null!;
+    public string AuthorName { get; set; } = null!;
 
-        public string? Status { get; set; }
+    public string? Status { get; set; }
 
-        public int ViewCount { get; set; }
+    public int ViewCount { get; set; }
 
-        public int LikeCount { get; set; }
+    public int LikeCount { get; set; }
 
-        public double AverageRating { get; set; }
+    public double AverageRating { get; set; }
 
-        public int TotalChapter { get; set; }
-    }
+    public int TotalChapter { get; set; }
 }

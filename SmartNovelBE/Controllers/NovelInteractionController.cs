@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SmartNovelBE.Models;
+using SmartNovelBE.DTOs.Novel;
 using SmartNovelBE.Services;
 
 namespace SmartNovelBE.Controllers
@@ -11,15 +12,12 @@ namespace SmartNovelBE.Controllers
     {
         private readonly INovelInteractionService _novelInteractionService;
 
-        public NovelInteractionController(
-            INovelInteractionService novelInteractionService)
+        public NovelInteractionController( INovelInteractionService novelInteractionService)
         {
             _novelInteractionService = novelInteractionService;
         }
 
-        // =====================================================
-        // FOLLOW TRUYỆN
-        // =====================================================
+        //Theo dõi truyện
         [Authorize]
         [HttpPost("follow/{novelId}")]
         public async Task<IActionResult> FollowNovel(string novelId)
@@ -60,8 +58,9 @@ namespace SmartNovelBE.Controllers
             }
         }
 
+        // Bỏ theo dõi truyện
         [Authorize]
-        [HttpDelete("unfollow/{novelId}")] // Thay bằng [HttpDelete] nếu phía Angular bạn đang gọi bằng phương thức Delete
+        [HttpDelete("unfollow/{novelId}")] 
         public async Task<IActionResult> UnFollowNovel(string novelId)
         {
             var uid = User.FindFirst("uid")?.Value;
@@ -80,7 +79,6 @@ namespace SmartNovelBE.Controllers
                     return BadRequest(new { Message = "Không thể bỏ theo dõi hoặc bản ghi không tồn tại" });
                 }
 
-                // SỬA TẠI ĐÂY: Trả về đối tượng JSON để Angular không bị lỗi HttpErrorResponse JSON.parse
                 return Ok(new { Message = "Bỏ theo dõi thành công" });
             }
             catch (Exception ex)
@@ -89,9 +87,7 @@ namespace SmartNovelBE.Controllers
             }
         }
 
-        // =====================================================
-        // DANH SÁCH TRUYỆN ĐANG THEO DÕI
-        // =====================================================
+        // Danh sách truyện đang theo dõi
         [Authorize]
         [HttpGet("following")]
         public async Task<IActionResult> GetFollowingNovels()
@@ -108,14 +104,11 @@ namespace SmartNovelBE.Controllers
 
             return Ok(result);
         }
+        // Đánh giá truyện
 
-        // =====================================================
-        // ĐÁNH GIÁ TRUYỆN
-        // =====================================================
         [Authorize]
         [HttpPost("rate")]
-        public async Task<IActionResult> RateNovel(
-            [FromBody] RateNovelRequest request)
+        public async Task<IActionResult> RateNovel([FromBody] RateNovelRequest request)
         {
             var uid = User.FindFirst("uid")?.Value;
 
@@ -124,10 +117,19 @@ namespace SmartNovelBE.Controllers
                 return Unauthorized();
             }
 
-            var result = await _novelInteractionService
-                .RateNovelAsync(uid, request);
+            var result = await _novelInteractionService.RateNovelAsync(uid, request);
 
             return Ok(result);
+        }
+
+        [Authorize]
+        [HttpGet("my-rating/{novelId}")]
+        public async Task<IActionResult> GetMyRating(string novelId)
+        {
+            var uid = User.FindFirst("uid")?.Value;
+            if (string.IsNullOrEmpty(uid))
+                return Unauthorized();
+            return Ok(await _novelInteractionService.GetMyRatingAsync(uid, novelId));
         }
     }
 }

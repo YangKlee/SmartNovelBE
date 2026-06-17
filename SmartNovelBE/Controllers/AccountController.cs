@@ -17,12 +17,14 @@ namespace SmartNovelBE.Controllers
         private readonly SmartTruyenDbContext _context;
         private readonly MailServices _mailServices;
         private readonly IMemoryCache _cache;
-        public AccountController(JwtServices jwtServices, SmartTruyenDbContext context, MailServices mailServices, IMemoryCache cache)
+        private readonly IUserRelationService _userRelationService;
+        public AccountController(JwtServices jwtServices, SmartTruyenDbContext context, MailServices mailServices, IMemoryCache cache, IUserRelationService userRelationService)
         {
             _jwtServices = jwtServices;
             _context = context;
             _mailServices = mailServices;
             _cache = cache;
+            _userRelationService = userRelationService;
         }
         [HttpGet("accountInfo")]
         public async Task<ActionResult<User>> accountInfo()
@@ -106,6 +108,19 @@ namespace SmartNovelBE.Controllers
                 await _context.SaveChangesAsync();
                 return Ok();
             }
+        }
+
+        [HttpGet("profile/{uid}")]
+        public async Task<IActionResult> GetProfile(string uid)
+        {
+            var currentUid = User.FindFirst("uid")?.Value;
+
+            var result = await _userRelationService.GetProfileAsync(currentUid, uid);
+
+            if (result == null)
+                return NotFound();
+
+            return Ok(result);
         }
     }
 }

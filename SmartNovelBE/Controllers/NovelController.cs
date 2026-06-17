@@ -31,6 +31,7 @@ using Microsoft.VisualBasic;
 using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.BlazorIdentity.Pages.Manage;
 using NuGet.Common;
 using Org.BouncyCastle.Ocsp;
+using SmartNovelBE.DTOs.Novel;
 using SmartNovelBE.Models;
 using SmartNovelBE.Services;
 using SSmartNovelBE.Services.Interfaces;
@@ -68,10 +69,10 @@ namespace SmartNovelBE.Controllers
             _fileServicesUpload = fileServicesUpload;
         }
 
-        [HttpGet("{novelID}")]
-        public async Task<IActionResult> GetDetail(string novelID)
+        [HttpGet("{novelId}")]
+        public async Task<IActionResult> GetDetail(string novelId)
         {
-            var result = await _context.Novels.FirstOrDefaultAsync(n => n.NovelId == novelID);
+            var result = await _novelService.GetByNovelIdAsync(novelId);
 
             if (result == null)
                 return NotFound();
@@ -82,7 +83,8 @@ namespace SmartNovelBE.Controllers
         [HttpGet("{novelId}/chapters")]
         public async Task<IActionResult> GetChapters(string novelId)
         {
-            var result = await _context.Chapters.Where(c => c.NovelId == novelId && c.Status.ToLower() == "public").ToListAsync();
+            var result = await _novelService.GetChaptersByNovelIdAsync(novelId);
+
             return Ok(result);
         }
 
@@ -508,10 +510,30 @@ namespace SmartNovelBE.Controllers
                 }
                 return Ok(novels);
             }
-
-
-
         }
+        [HttpGet("author/{uid}/novels")]
+        public async Task<IActionResult> GetAuthorNovels(string uid)
+        {
+            var novels = await _context.Novels
+                .Where(n => n.Uid != null && n.Uid == uid)
+                .OrderByDescending(n => n.CreateTime)
+                .Select(n => new NovelListDto
+                {
+                    NovelId = n.NovelId,
+                    Title = n.Title,
+                    Slug = n.Slug,
+                    ImageUrl = n.ImageNovelUrl,
+                    ViewCount = n.ViewCount ?? 0,
+                    LikeCount = n.LikeCount ?? 0,
+                    Status = n.Status,
+                    CreateTime = n.CreateTime
+                })
+                .ToListAsync();
+
+            return Ok(novels);
+        }
+
+
         [Authorize]
         [HttpGet("seachNovelAuthor/count")]
         public async Task<IActionResult> countseachNovel([FromQuery] UserRequests.searchNovel req)

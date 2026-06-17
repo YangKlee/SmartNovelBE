@@ -15,12 +15,14 @@ namespace SmartNovelBE.Services
                     menu.Add(new MenuDashboard { Title = "Quản lý người dùng", ActionUrl = "/dashboard/admin/user-manager", Icon = "people" });
                     menu.Add(new MenuDashboard { Title = "Quản lý truyện", ActionUrl = "/dashboard/moderator/novel-manager", Icon = "fact_check" });
                     menu.Add(new MenuDashboard { Title = "Quản lý bình luận", ActionUrl = "/dashboard/admin/comment-manager", Icon = "report" });
+                    menu.Add(new MenuDashboard { Title = "Quản lý báo cáo", ActionUrl = "/dashboard/moderator/report-manager", Icon = "report" });
                     menu.Add(new MenuDashboard { Title = "Quản lý thể loại", ActionUrl = "/dashboard/admin/category-manager", Icon = "settings" });
                     break;
                 case "2": // Mod/Censor
                     menu.Add(new MenuDashboard { Title = "Dashboard", ActionUrl = "/dashboard/moderator", Icon = "dashboard" });
                     menu.Add(new MenuDashboard { Title = "Quản lý truyện", ActionUrl = "/dashboard/moderator/novel-manager", Icon = "fact_check" });
                     menu.Add(new MenuDashboard { Title = "Quản lý bình luận", ActionUrl = "/dashboard/moderator/comment-manager", Icon = "report" });
+                    menu.Add(new MenuDashboard { Title = "Quản lý báo cáo", ActionUrl = "/dashboard/moderator/report-manager", Icon = "report" });
                     break;
                 case "3": // Author
                     menu.Add(new MenuDashboard { Title = "Dashboard", ActionUrl = "/dashboard/author", Icon = "dashboard" });

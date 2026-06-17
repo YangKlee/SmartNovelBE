@@ -20,13 +20,17 @@ namespace SmartNovelBE.Controllers
         private readonly MailServices _mailServices;
         private readonly IMemoryCache _cache;
         private readonly IUserRelationService _userRelationService;
-        public AccountController(JwtServices jwtServices, SmartTruyenDbContext context, MailServices mailServices, IMemoryCache cache, IUserRelationService userRelationService)
+        private readonly FileStorageServices _fileServicesUpload;
+        public AccountController(JwtServices jwtServices, SmartTruyenDbContext context,
+            MailServices mailServices, IMemoryCache cache, IUserRelationService userRelationService,
+            FileStorageServices fileServicesUpload)
         {
             _jwtServices = jwtServices;
             _context = context;
             _mailServices = mailServices;
             _cache = cache;
             _userRelationService = userRelationService;
+            _fileServicesUpload = fileServicesUpload;
         }
         [HttpGet("accountInfo")]
         public async Task<ActionResult<User>> accountInfo()
@@ -137,6 +141,7 @@ namespace SmartNovelBE.Controllers
                 return NotFound();
 
             return Ok(result);
+        }
         [Authorize]
         [HttpPost("changeAvatar")]
         public async Task<IActionResult> changeProfileImage([FromForm] UserRequests.uploadAvatar req)

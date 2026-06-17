@@ -75,15 +75,15 @@ namespace SmartNovelBE.Controllers
         {
             var result = await _novelService.GetByNovelIdAsync(novelId);
             var uid = User.FindFirst("uid")?.Value;
-            var result = await _context.Novels.FirstOrDefaultAsync(n => n.NovelId == novelID);
+            var result1 = await _context.Novels.FirstOrDefaultAsync(n => n.NovelId == novelId);
 
             if (result == null)
                 return NotFound();
 
-            var chapter =  _context.Chapters.Where(c => c.NovelId == novelID).AsQueryable();
+            var chapter =  _context.Chapters.Where(c => c.NovelId == novelId).AsQueryable();
             var firstChapter = await chapter.OrderBy(c => c.ChaperOrder).FirstOrDefaultAsync();
             var lastChapter = await chapter.OrderByDescending(c => c.ChaperOrder).FirstOrDefaultAsync();
-            var lastReadChapter = await _context.HistoryReaders.Include(h => h.Chapter).Where(c => c.Chapter.NovelId == novelID && c.Uid == uid)
+            var lastReadChapter = await _context.HistoryReaders.Include(h => h.Chapter).Where(c => c.Chapter.NovelId == novelId && c.Uid == uid)
                 .OrderByDescending(c => c.Chapter.ChaperOrder).FirstOrDefaultAsync();
 
             var isFollowNovel = false;
@@ -92,14 +92,14 @@ namespace SmartNovelBE.Controllers
             if (!string.IsNullOrEmpty(uid))
             {
                 isFollowNovel = await _context.Users
-                    .AnyAsync(u => u.Uid == uid && u.Novels.Any(n => n.NovelId == novelID));
+                    .AnyAsync(u => u.Uid == uid && u.Novels.Any(n => n.NovelId == novelId));
                 isFollowAuthor = await _context.Users
-                    .AnyAsync(u => u.Uid == uid && u.UidsNavigation.Any(a => a.Uid == result.Uid));
+                    .AnyAsync(u => u.Uid == uid && u.UidsNavigation.Any(a => a.Uid == result1.Uid));
                 isBlockedAuthor = await _context.Users
-                    .AnyAsync(u => u.Uid == uid && u.Authors.Any(a => a.Uid == result.Uid));
+                    .AnyAsync(u => u.Uid == uid && u.Authors.Any(a => a.Uid == result1.Uid));
             }
 
-            var ratings = await _context.Ratings.Where(r => r.NovelId == novelID).ToListAsync();
+            var ratings = await _context.Ratings.Where(r => r.NovelId == novelId).ToListAsync();
             var averageRating = ratings.Any() ? ratings.Average(r => r.RatingPoint) : 0.0;
             var userRating = 0.0;
             if (!string.IsNullOrEmpty(uid))
@@ -113,7 +113,7 @@ namespace SmartNovelBE.Controllers
 
             var res = new UserRespone.NovelDetail
             {
-                novel = result,
+                novel = result1,
                 firstChapter = firstChapter?.ChapterId,
                 newestChapter = lastChapter?.ChapterId,
                 readingChapter = lastReadChapter?.ChapterId,

@@ -147,6 +147,17 @@ namespace SmartNovelBE.Controllers
 
                 // Xóa từ dưới lên trên (đảo ngược danh sách để xóa con trước)
                 allCommentsToDelete.Reverse();
+
+                // Nullify related ReportTicket CommentId reference before deletion
+                var commentIdsToDelete = allCommentsToDelete.Select(c => c.CommentId).ToList();
+                var relatedReports = await _context.ReportTickets
+                    .Where(r => r.CommentId != null && commentIdsToDelete.Contains(r.CommentId))
+                    .ToListAsync();
+                foreach (var report in relatedReports)
+                {
+                    report.CommentId = null;
+                }
+
                 _context.Comments.RemoveRange(allCommentsToDelete);
                 await _context.SaveChangesAsync();
                 

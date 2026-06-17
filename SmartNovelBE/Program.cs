@@ -85,6 +85,7 @@ builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IHomeService, HomeService>();
 builder.Services.AddScoped<IUserRelationService, UserRelationService>();
 builder.Services.AddScoped<INovelInteractionService, NovelInteractionService>();
+builder.Services.AddScoped<MenuDashboardService>();
 builder.Services.AddAuthorization();
 builder.Services.AddCors(options =>
 {

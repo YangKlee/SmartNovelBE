@@ -37,5 +37,10 @@ namespace SmartNovelBE.Models
         public record searchNovel(string status, string? keyworld);
         public record searchChapter(string novelID,string status, string? keyworld);
 
+        public record uploadAvatar(IFormFile? NewImage);
+        public record addComment(string novelId, string chapterId, string content, string? parentComment = "");
+
+        public record readerComment(string novelId, string chapterId, string keyworld, string? pageLimit = "5", string? currentPage = "1" , string? parentCommentID = null);
+
     }
 }

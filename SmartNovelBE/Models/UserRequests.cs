@@ -8,6 +8,7 @@ namespace SmartNovelBE.Models
         public record MailToken(string email, bool active);
         public record ChangeInfoUser(string displayName,  string phone, string? birthday);
         public record changePassword(string oldPassword, string newPassword);
+        public record UpdateReadingPreferences(string theme, int fontSize, string fontFamily);
         public record CreateNovelRequest
         {
             public string Title { get; init; } = string.Empty;

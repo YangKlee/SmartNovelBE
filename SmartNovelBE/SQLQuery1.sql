@@ -1,4 +1,4 @@
-﻿-- Tạo Database
+-- Tạo Database
 CREATE DATABASE SmartTruyenDB;
 GO
 
@@ -44,6 +44,9 @@ CREATE TABLE [User] (
     TimeOutTime DATETIME NULL,
     TimeOutType VARCHAR(20) NULL,
     CreatorPoint INT DEFAULT 0,
+    ReadingTheme VARCHAR(20) DEFAULT 'light',
+    ReadingFontSize INT DEFAULT 19,
+    ReadingFontFamily VARCHAR(50) DEFAULT 'Roboto',
     CONSTRAINT PK_User PRIMARY KEY (UID),
     CONSTRAINT FK_User_Role FOREIGN KEY (RoleID) REFERENCES [Role](RoleID) ON DELETE NO ACTION
 );

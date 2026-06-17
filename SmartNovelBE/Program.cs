@@ -78,6 +78,19 @@ builder.Services.AddAuthentication(options =>
         ValidateLifetime = true,
         ValidateIssuerSigningKey = true
     };
+    options.Events = new JwtBearerEvents
+    {
+        OnMessageReceived = context =>
+        {
+            var accessToken = context.Request.Query["access_token"];
+            var path = context.HttpContext.Request.Path;
+            if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/smartnovel-hub"))
+            {
+                context.Token = accessToken;
+            }
+            return Task.CompletedTask;
+        }
+    };
 });
 builder.Services.AddScoped<JwtServices>();
 builder.Services.AddScoped<INovelService, NovelService>();
@@ -92,11 +105,17 @@ builder.Services.AddCors(options =>
         {
             policy.WithOrigins("http://localhost:4200", "http://127.0.0.1:4200")
                   .AllowAnyHeader()
-                  .AllowAnyMethod();
+                  .AllowAnyMethod()
+                  .AllowCredentials();
         });
 });
 builder.Services.AddTransient<MailServices>();
 builder.Services.AddSingleton<FileStorageServices>();
+var redisConnectionString = builder.Configuration.GetConnectionString("Redis") ?? "localhost:6379,abortConnect=false";
+builder.Services.AddSingleton<StackExchange.Redis.IConnectionMultiplexer>(StackExchange.Redis.ConnectionMultiplexer.Connect(redisConnectionString));
+builder.Services.AddSingleton<ILiveRoomManager, RedisRoomManager>();
+builder.Services.AddSignalR();
+
 
 builder.Services.AddMemoryCache();
 builder.Services.AddEndpointsApiExplorer();
@@ -116,5 +135,6 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+app.MapHub<SmartNovelBE.Hubs.SmartNovelHub>("/smartnovel-hub");
 
 app.Run();

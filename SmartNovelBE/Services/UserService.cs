@@ -27,9 +27,11 @@ namespace SmartNovel.Services
 
             if (!string.IsNullOrEmpty(status))
                 query = query.Where(u => u.Status == status);
+
             int skip = (page - 1) * pageSize;
             int totalUsers = await query.CountAsync();
             int totalPages = (int)Math.Ceiling(totalUsers / (double)pageSize);
+
             var userDtos = await query
                 .Skip(skip)
                 .Take(pageSize)

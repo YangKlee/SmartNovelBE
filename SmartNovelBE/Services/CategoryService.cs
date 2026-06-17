@@ -41,7 +41,8 @@ namespace SmartNovelBE.Services
         public async Task<Category> CreateCategoryAsync(Category model)
         {
             bool isExists = await _context.Categories.AnyAsync(c => c.Name == model.Name);
-            // Đảm bảo ID sinh ra TUYỆT ĐỐI không bao giờ bị trùng với bất kỳ data lộn xộn nào
+            if (isExists) throw new Exception("Tên thể loại đã tồn tại!");
+            
             string newId;
             bool isIdTaken;
             Random rnd = new Random();

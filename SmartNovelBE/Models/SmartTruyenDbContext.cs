@@ -140,6 +140,9 @@ public partial class SmartTruyenDbContext : DbContext
                 .HasMaxLength(36)
                 .IsUnicode(false)
                 .HasColumnName("UID");
+            entity.Property(e => e.ParagraphIndex).HasColumnName("ParagraphIndex");
+            entity.Property(e => e.StartOffset).HasColumnName("StartOffset");
+            entity.Property(e => e.EndOffset).HasColumnName("EndOffset");
 
             entity.HasOne(d => d.Chapter).WithMany(p => p.Comments)
                 .HasForeignKey(d => d.ChapterId)

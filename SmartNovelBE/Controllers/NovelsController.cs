@@ -23,8 +23,8 @@ namespace SmartNovelBE.Controllers
         [FromQuery] int? minChapters,
         [FromQuery] string? sortBy,
         [FromQuery] string? categoryId,
-        [FromQuery] string? authorId,      // Bổ sung nhận mã tác giả
-        [FromQuery] double? minRating,     // Bổ sung nhận điểm rating tối thiểu
+        [FromQuery] string? authorId,      
+        [FromQuery] double? minRating,     
         [FromQuery] string? currentUid)
         {
             // 1. Tạo Query cơ sở, bao gồm tính luôn điểm Rating Trung Bình của từng truyện
@@ -48,7 +48,7 @@ namespace SmartNovelBE.Controllers
                 query = query.Where(q => q.Novel.Status == status);
             }
 
-            // SỬA CHỖ NÀY: Xử lý dải chương (1: 1-50, 2: 51-100, 3: 101-150)
+            //  Xử lý dải chương (1: 1-50, 2: 51-100, 3: 101-150)
             if (minChapters > 0)
             {
                 if (minChapters == 1) query = query.Where(q => q.ChapterCount >= 1 && q.ChapterCount <= 50);
@@ -73,11 +73,11 @@ namespace SmartNovelBE.Controllers
             // 4. KIỂM TRA SẮP XẾP ĐẦU RA
             if (sortBy == "rating")
             {
-                query = query.OrderByDescending(q => q.AverageRating); // Rating cao xếp trước
+                query = query.OrderByDescending(q => q.AverageRating); 
             }
             else
             {
-                query = query.OrderByDescending(q => q.Novel.UpdateTime); // Mặc định xếp theo ngày cập nhật
+                query = query.OrderByDescending(q => q.Novel.UpdateTime); 
             }
 
             // 5. Trả về cấu trúc dữ liệu gọn sạch cho Angular nhận diện

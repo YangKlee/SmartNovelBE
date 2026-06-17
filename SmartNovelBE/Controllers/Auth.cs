@@ -12,7 +12,6 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using System.Security.Claims;
 using SmartNovelBE.Models;
 using SmartNovelBE.Services;
-using static Org.BouncyCastle.Crypto.Engines.SM2Engine;
 
 namespace SmartNovelBE.Controllers
 {
@@ -22,14 +21,10 @@ namespace SmartNovelBE.Controllers
     {
         private readonly JwtServices _jwtServices;
         private readonly SmartTruyenDbContext _context;
-        private readonly MailServices _mailServices;
-        private readonly IMemoryCache _cache;
-        public Auth(JwtServices jwtServices, SmartTruyenDbContext context, MailServices mailServices, IMemoryCache cache)
+        public Auth(JwtServices jwtServices, SmartTruyenDbContext context)
         {
             _jwtServices = jwtServices;
             _context = context;
-            _mailServices = mailServices;
-            _cache = cache;
         }
         [AllowAnonymous]
         [HttpPost("Login")]
@@ -223,7 +218,7 @@ namespace SmartNovelBE.Controllers
         }
         [AllowAnonymous]
         [HttpPost("Regist")]
-        public async Task<ActionResult> Regist(RegistRequest req)
+        public async Task<ActionResult<User>> Regist(RegistRequest req)
         {
             var passwordHasher = new PasswordHasher<object>();
             var user = new User();
@@ -236,18 +231,14 @@ namespace SmartNovelBE.Controllers
 
             user.Uid = Guid.NewGuid().ToString();
             user.Password = passwordHasher.HashPassword(user,req.Password);
-            user.RoleId = "4"; // gán user ban đầu là độc giả
+            user.RoleId = "4";
             user.Status = "Active";
             _context.Users.Add(user);
             try
             {
                 await _context.SaveChangesAsync();
-                return Ok(new 
-                {
-                    content = "Đăng ký thành công rồi nè!",
-                });
             }
-            catch 
+            catch (DbUpdateException)
             {
                 var checkUsername = await _context.Users.FirstOrDefaultAsync(x => x.Username == user.Username);
                 var checkEmail = await _context.Users.FirstOrDefaultAsync(x => x.Email == user.Email);

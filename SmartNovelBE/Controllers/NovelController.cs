@@ -522,7 +522,7 @@ namespace SmartNovelBE.Controllers
                     NovelId = n.NovelId,
                     Title = n.Title,
                     Slug = n.Slug,
-                    ImageUrl = n.ImageNovelUrl,
+                    ImageNovelUrl = n.ImageNovelUrl,
                     ViewCount = n.ViewCount ?? 0,
                     LikeCount = n.LikeCount ?? 0,
                     Status = n.Status,

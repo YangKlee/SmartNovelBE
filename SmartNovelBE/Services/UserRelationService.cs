@@ -228,7 +228,7 @@ namespace SmartNovelBE.Services
                     {
                         NovelId = n.NovelId,
                         Title = n.Title,
-                        ImageUrl = n.ImageNovelUrl,
+                        ImageNovelUrl = n.ImageNovelUrl,
                         ViewCount = n.ViewCount ?? 0,
                         LikeCount = n.LikeCount ?? 0,
                         Status = n.Status,
@@ -246,7 +246,7 @@ namespace SmartNovelBE.Services
                 {
                     NovelId = n.NovelId,
                     Title = n.Title,
-                    ImageUrl = n.ImageNovelUrl,
+                    ImageNovelUrl = n.ImageNovelUrl,
                     ViewCount = n.ViewCount ?? 0,
                     LikeCount = n.LikeCount ?? 0
                 })

@@ -5,7 +5,7 @@
         public string NovelId { get; set; }
         public string Title { get; set; }
         public string Slug { get; set; }
-        public string? ImageUrl { get; set; }
+        public string? ImageNovelUrl { get; set; }
         public int ViewCount { get; set; }
         public int LikeCount { get; set; }
         public string Status { get; set; }

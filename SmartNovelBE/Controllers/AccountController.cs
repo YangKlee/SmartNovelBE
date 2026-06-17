@@ -122,5 +122,17 @@ namespace SmartNovelBE.Controllers
 
             return Ok(result);
         }
+        [HttpGet("profile")]
+        public async Task<IActionResult> GetProfile()
+        {
+            var currentUid = User.FindFirst("uid")?.Value;
+
+            var result = await _userRelationService.GetProfileAsync(currentUid, currentUid);
+
+            if (result == null)
+                return NotFound();
+
+            return Ok(result);
+        }
     }
 }
